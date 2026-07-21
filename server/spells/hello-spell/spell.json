@@ -1,0 +1,11 @@
+{
+  "name": "hello-spell",
+  "displayName": "Hello Spell",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "hello-spell",
+  "config": {
+    "position": "top-left",
+    "greeting": "Welcome to Grimoire"
+  }
+}

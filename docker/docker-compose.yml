@@ -1,0 +1,30 @@
+services:
+  server:
+    build:
+      context: ..
+      dockerfile: docker/server.Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../server:/app/server
+      - server_node_modules:/app/server/node_modules
+      - grimoire_data:/app/server/data
+    environment:
+      - PORT=3000
+
+  web:
+    build:
+      context: ..
+      dockerfile: docker/web.Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      - ../web:/app/web
+      - web_node_modules:/app/web/node_modules
+    depends_on:
+      - server
+
+volumes:
+  server_node_modules:
+  web_node_modules:
+  grimoire_data:
