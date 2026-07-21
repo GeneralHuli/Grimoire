@@ -1,0 +1,11 @@
+{
+  "name": "calendar",
+  "displayName": "Family Calendar",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "calendar",
+  "config": {
+    "position": "top-left",
+    "defaultView": "week"
+  }
+}

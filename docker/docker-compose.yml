@@ -11,6 +11,10 @@ services:
       - grimoire_data:/app/server/data
     environment:
       - PORT=3000
+      - GRIMOIRE_ENCRYPTION_KEY=${GRIMOIRE_ENCRYPTION_KEY}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
 
   web:
     build:
