@@ -25,6 +25,8 @@ services:
     volumes:
       - ../web:/app/web
       - web_node_modules:/app/web/node_modules
+    environment:
+      - VITE_API_PROXY_TARGET=http://server:3000
     depends_on:
       - server
 
