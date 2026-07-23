@@ -412,6 +412,60 @@ body {
   cursor: pointer;
 }
 
+/* Sized for reading at arm's length while cooking, not just skimming. */
+.recipe-view-dialog {
+  position: relative;
+  width: min(92vw, 720px);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: canvas;
+  color: canvastext;
+  border-radius: 1rem;
+  padding: 1.75rem;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+}
+
+.recipe-view-dialog h3 {
+  margin-top: 0;
+  font-size: 1.5rem;
+}
+
+.recipe-view-dialog h4 {
+  margin: 1.5rem 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.recipe-view-meta {
+  opacity: 0.7;
+  margin: 0;
+}
+
+.recipe-view-list {
+  margin: 0;
+  padding-left: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recipe-view-list li {
+  font-size: 1.15rem;
+  line-height: 1.5;
+}
+
+.recipe-view-empty {
+  opacity: 0.7;
+}
+
+.recipe-view-source {
+  margin-top: 1.5rem;
+  font-size: 0.9rem;
+}
+
+.recipe-view-dialog .settings-save {
+  margin-top: 1.5rem;
+}
+
 .grimoire-header {
   display: flex;
   align-items: center;
