@@ -16,12 +16,47 @@ function getSelectedCalendarId(): string {
   return typeof calendarId === "string" && calendarId ? calendarId : "primary";
 }
 
-function getRange(range: string): { timeMin: string; timeMax: string } {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const days = range === "day" ? 1 : 7;
+/** Parses a `YYYY-MM-DD` query param into a local-midnight Date, defaulting to today. */
+function parseAnchor(dateParam: unknown): Date {
+  if (typeof dateParam === "string") {
+    const parsed = new Date(`${dateParam}T00:00:00`);
+    if (!Number.isNaN(parsed.getTime())) return parsed;
+  }
+  return new Date();
+}
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function startOfWeek(d: Date): Date {
+  const start = startOfDay(d);
+  start.setDate(start.getDate() - start.getDay());
+  return start;
+}
+
+/**
+ * Month range is padded out to full calendar weeks (a 42-day/6-row grid) so every
+ * day cell shown in the Month view — including leading/trailing days from adjacent
+ * months — has correct event data.
+ */
+function getRange(range: "day" | "week" | "month", anchor: Date): { timeMin: string; timeMax: string } {
+  if (range === "day") {
+    const start = startOfDay(anchor);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 1);
+    return { timeMin: start.toISOString(), timeMax: end.toISOString() };
+  }
+  if (range === "week") {
+    const start = startOfWeek(anchor);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    return { timeMin: start.toISOString(), timeMax: end.toISOString() };
+  }
+  const firstOfMonth = new Date(anchor.getFullYear(), anchor.getMonth(), 1);
+  const start = startOfWeek(firstOfMonth);
   const end = new Date(start);
-  end.setDate(end.getDate() + days);
+  end.setDate(end.getDate() + 42);
   return { timeMin: start.toISOString(), timeMax: end.toISOString() };
 }
 
@@ -62,8 +97,9 @@ const mod: SpellModule = {
           res.status(401).json({ error: "google_not_connected" });
           return;
         }
-        const range = req.query.range === "day" ? "day" : "week";
-        const { timeMin, timeMax } = getRange(range);
+        const range = req.query.range === "day" || req.query.range === "month" ? req.query.range : "week";
+        const anchor = parseAnchor(req.query.date);
+        const { timeMin, timeMax } = getRange(range, anchor);
         const result = await calendar.events.list({
           calendarId: getSelectedCalendarId(),
           timeMin,
@@ -105,6 +141,33 @@ const mod: SpellModule = {
           },
         });
         res.status(201).json({ id: result.data.id });
+      })
+    );
+
+    app.put(
+      "/api/spells/calendar/events/:id",
+      handleErrors(async (req, res) => {
+        const calendar = getCalendarClient();
+        if (!calendar) {
+          res.status(401).json({ error: "google_not_connected" });
+          return;
+        }
+        const { title, start, end, allDay } = req.body as {
+          title: string;
+          start: string;
+          end: string;
+          allDay?: boolean;
+        };
+        await calendar.events.patch({
+          calendarId: getSelectedCalendarId(),
+          eventId: req.params.id,
+          requestBody: {
+            summary: title,
+            start: allDay ? { date: start } : { dateTime: start },
+            end: allDay ? { date: end } : { dateTime: end },
+          },
+        });
+        res.status(204).end();
       })
     );
   },

@@ -27,7 +27,8 @@ Phases are sequential but each is scoped to ship something usable on its own.
   no separate OAuth flow of its own
 - Read/write against Google Calendar API; user can pick which of the account's calendars
   to display (`GET /api/spells/calendar/calendars` + a saved `calendarId` setting)
-- Touchscreen-first calendar view (day/week), kiosk-safe (no accidental navigation)
+- Touchscreen-first calendar view (month/week/day, month is the default), kiosk-safe:
+  tapping a day in Month/Week opens that day's view, tapping an event opens an edit modal
 
 ## Phase 2 — Chores Spell — **Not started**
 - Google Tasks API integration, per-family-member task lists

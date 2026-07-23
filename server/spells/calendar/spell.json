@@ -7,7 +7,7 @@
   "requires": ["google-account"],
   "config": {
     "position": "top-left",
-    "defaultView": "week",
+    "defaultView": "month",
     "calendarId": "primary"
   }
 }
