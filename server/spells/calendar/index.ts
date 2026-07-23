@@ -2,11 +2,18 @@ import type { Express, Request, Response } from "express";
 import { google } from "googleapis";
 import type { SpellModule } from "../../src/types.js";
 import { getAuthorizedClient } from "../google-account/client.js";
+import { getSettings } from "../../src/settingsStore.js";
 
 function getCalendarClient() {
   const client = getAuthorizedClient();
   if (!client) return null;
   return google.calendar({ version: "v3", auth: client });
+}
+
+/** Which of the account's calendars to read/write, as picked in the Calendar Spell's settings. */
+function getSelectedCalendarId(): string {
+  const { calendarId } = getSettings("calendar");
+  return typeof calendarId === "string" && calendarId ? calendarId : "primary";
 }
 
 function getRange(range: string): { timeMin: string; timeMax: string } {
@@ -30,6 +37,24 @@ function handleErrors(fn: (req: Request, res: Response) => Promise<void>) {
 const mod: SpellModule = {
   register(app: Express) {
     app.get(
+      "/api/spells/calendar/calendars",
+      handleErrors(async (_req, res) => {
+        const calendar = getCalendarClient();
+        if (!calendar) {
+          res.status(401).json({ error: "google_not_connected" });
+          return;
+        }
+        const result = await calendar.calendarList.list();
+        const calendars = (result.data.items ?? []).map((entry) => ({
+          id: entry.id,
+          summary: entry.summaryOverride ?? entry.summary ?? entry.id,
+          primary: Boolean(entry.primary),
+        }));
+        res.json({ calendars });
+      })
+    );
+
+    app.get(
       "/api/spells/calendar/events",
       handleErrors(async (req, res) => {
         const calendar = getCalendarClient();
@@ -40,7 +65,7 @@ const mod: SpellModule = {
         const range = req.query.range === "day" ? "day" : "week";
         const { timeMin, timeMax } = getRange(range);
         const result = await calendar.events.list({
-          calendarId: "primary",
+          calendarId: getSelectedCalendarId(),
           timeMin,
           timeMax,
           singleEvents: true,
@@ -72,7 +97,7 @@ const mod: SpellModule = {
           allDay?: boolean;
         };
         const result = await calendar.events.insert({
-          calendarId: "primary",
+          calendarId: getSelectedCalendarId(),
           requestBody: {
             summary: title,
             start: allDay ? { date: start } : { dateTime: start },

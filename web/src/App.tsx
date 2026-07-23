@@ -6,6 +6,7 @@ import type { SpellManifest } from "./types";
 export function App() {
   const [spells, setSpells] = useState<SpellManifest[]>([]);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsVersion, setSettingsVersion] = useState(0);
 
   useEffect(() => {
     fetch("/api/spells")
@@ -29,11 +30,20 @@ export function App() {
         {spells.map((spell) => {
           const Component = SPELL_COMPONENTS[spell.frontend];
           if (!Component) return null;
-          return <Component key={spell.name} />;
+          // Remounting on settings close is a blunt tool, but it guarantees every
+          // widget re-fetches with whatever just changed (e.g. Calendar's selected
+          // calendarId) without each Spell needing its own "did settings change" wiring.
+          return <Component key={`${spell.name}-${settingsVersion}`} />;
         })}
       </main>
       {settingsOpen && (
-        <SettingsModal spells={spells} onClose={() => setSettingsOpen(false)} />
+        <SettingsModal
+          spells={spells}
+          onClose={() => {
+            setSettingsOpen(false);
+            setSettingsVersion((v) => v + 1);
+          }}
+        />
       )}
     </>
   );
