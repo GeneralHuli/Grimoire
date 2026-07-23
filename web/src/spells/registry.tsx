@@ -1,5 +1,4 @@
 import type { ComponentType } from "react";
-import { HelloSpell } from "./HelloSpell";
 import { CalendarSpell } from "./CalendarSpell";
 
 /**
@@ -9,6 +8,5 @@ import { CalendarSpell } from "./CalendarSpell";
  * so never appear here.
  */
 export const SPELL_COMPONENTS: Record<string, ComponentType> = {
-  "hello-spell": HelloSpell,
   calendar: CalendarSpell,
 };

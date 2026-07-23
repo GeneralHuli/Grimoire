@@ -8,7 +8,7 @@ interface GoogleCalendar {
 
 interface CalendarSettingsValues {
   calendarId?: string;
-  defaultView?: "day" | "week";
+  defaultView?: "day" | "week" | "month";
 }
 
 export function CalendarSettings() {
@@ -82,11 +82,12 @@ export function CalendarSettings() {
       <label className="settings-field">
         Default view
         <select
-          value={settings.defaultView ?? "week"}
+          value={settings.defaultView ?? "month"}
           onChange={(e) => update("defaultView", e.target.value as CalendarSettingsValues["defaultView"])}
         >
-          <option value="day">Day</option>
+          <option value="month">Month</option>
           <option value="week">Week</option>
+          <option value="day">Day</option>
         </select>
       </label>
       <button className="settings-save" onClick={save}>
