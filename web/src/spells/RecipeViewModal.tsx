@@ -1,0 +1,64 @@
+import type { RecipeFields } from "./RecipesSpell";
+
+interface RecipeViewModalProps {
+  recipe: RecipeFields & { id: string };
+  onClose: () => void;
+  onEdit: () => void;
+}
+
+export function RecipeViewModal({ recipe, onClose, onEdit }: RecipeViewModalProps) {
+  return (
+    <div className="settings-overlay" onClick={onClose}>
+      <div
+        className="recipe-view-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={recipe.title}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          ×
+        </button>
+        <h3>{recipe.title}</h3>
+        <p className="recipe-view-meta">
+          {recipe.mealType || "—"} · {recipe.ease}
+          {recipe.rating > 0 ? ` · ${"★".repeat(recipe.rating)}` : ""}
+        </p>
+
+        <h4>Ingredients</h4>
+        {recipe.ingredients.length > 0 ? (
+          <ul className="recipe-view-list">
+            {recipe.ingredients.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="recipe-view-empty">No ingredients listed.</p>
+        )}
+
+        <h4>Steps</h4>
+        {recipe.steps.length > 0 ? (
+          <ul className="recipe-view-list">
+            {recipe.steps.map((item, i) => (
+              <li key={i}>{item}</li>
+            ))}
+          </ul>
+        ) : (
+          <p className="recipe-view-empty">No steps listed.</p>
+        )}
+
+        {recipe.sourceUrl && (
+          <p className="recipe-view-source">
+            <a href={recipe.sourceUrl} target="_blank" rel="noreferrer">
+              View original source
+            </a>
+          </p>
+        )}
+
+        <button type="button" className="settings-save" onClick={onEdit}>
+          Edit
+        </button>
+      </div>
+    </div>
+  );
+}

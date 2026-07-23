@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { RecipeEditorModal } from "./RecipeEditorModal";
 import { RecipeImportModal } from "./RecipeImportModal";
 import { RecipeGenerateModal } from "./RecipeGenerateModal";
+import { RecipeViewModal } from "./RecipeViewModal";
 
 export interface RecipeFields {
   title: string;
@@ -37,6 +38,7 @@ const EMPTY_FIELDS: RecipeFields = {
 
 export function RecipesSpell() {
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
+  const [viewing, setViewing] = useState<(RecipeFields & { id: string }) | null>(null);
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [importing, setImporting] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -53,9 +55,14 @@ export function RecipesSpell() {
 
   async function openRecipe(id: string) {
     const res = await fetch(`/api/spells/recipes/recipes/${id}`);
-    const detail = (await res.json()) as EditingState["fields"] & { id: string };
-    const { id: recipeId, ...fields } = detail;
-    setEditing({ id: recipeId, fields });
+    setViewing((await res.json()) as RecipeFields & { id: string });
+  }
+
+  function editViewing() {
+    if (!viewing) return;
+    const { id, ...fields } = viewing;
+    setViewing(null);
+    setEditing({ id, fields });
   }
 
   return (
@@ -90,6 +97,8 @@ export function RecipesSpell() {
           ))}
         </ul>
       )}
+
+      {viewing && <RecipeViewModal recipe={viewing} onClose={() => setViewing(null)} onEdit={editViewing} />}
 
       {editing && (
         <RecipeEditorModal
