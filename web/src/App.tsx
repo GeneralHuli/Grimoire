@@ -28,7 +28,7 @@ export function App() {
       </header>
       <main className="grimoire-grid">
         {spells.map((spell) => {
-          const Component = SPELL_COMPONENTS[spell.frontend];
+          const Component = spell.frontend ? SPELL_COMPONENTS[spell.frontend] : undefined;
           if (!Component) return null;
           // Remounting on settings close is a blunt tool, but it guarantees every
           // widget re-fetches with whatever just changed (e.g. Calendar's selected
