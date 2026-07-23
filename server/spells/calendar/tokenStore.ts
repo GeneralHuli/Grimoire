@@ -28,3 +28,7 @@ export function loadRefreshToken(): string | null {
 export function isConnected(): boolean {
   return loadRefreshToken() !== null;
 }
+
+export function clearRefreshToken(): void {
+  db.prepare("DELETE FROM calendar_tokens WHERE id = 1").run();
+}

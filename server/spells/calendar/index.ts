@@ -2,7 +2,12 @@ import type { Express, Request, Response } from "express";
 import { google } from "googleapis";
 import type { SpellModule } from "../../src/types.js";
 import { createOAuthClient, getConsentUrl } from "./googleAuth.js";
-import { saveRefreshToken, loadRefreshToken, isConnected } from "./tokenStore.js";
+import {
+  saveRefreshToken,
+  loadRefreshToken,
+  isConnected,
+  clearRefreshToken,
+} from "./tokenStore.js";
 
 function getCalendarClient() {
   const refreshToken = loadRefreshToken();
@@ -38,6 +43,11 @@ const mod: SpellModule = {
 
     app.get("/api/spells/calendar/auth/start", (_req, res) => {
       res.redirect(getConsentUrl());
+    });
+
+    app.post("/api/spells/calendar/auth/disconnect", (_req, res) => {
+      clearRefreshToken();
+      res.json({ connected: false });
     });
 
     app.get(
