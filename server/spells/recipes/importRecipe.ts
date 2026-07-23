@@ -29,9 +29,30 @@ function findRecipeNode(data: unknown): Record<string, unknown> | null {
   return null;
 }
 
+const HTML_ENTITIES: Record<string, string> = {
+  quot: '"',
+  apos: "'",
+  amp: "&",
+  lt: "<",
+  gt: ">",
+  nbsp: " ",
+};
+
+/** Recipe JSON-LD is frequently HTML-escaped and padded with runs of whitespace. */
+function cleanText(text: string): string {
+  return text
+    .replace(/&(#(\d+)|#x([0-9a-f]+)|(\w+));/gi, (match, _entity, dec, hex, named) => {
+      if (dec) return String.fromCodePoint(Number(dec));
+      if (hex) return String.fromCodePoint(Number.parseInt(hex, 16));
+      return HTML_ENTITIES[named.toLowerCase()] ?? match;
+    })
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 /** schema.org HowToStep entries are `{ "@type": "HowToStep", "text": "..." }`; plain strings pass through. */
 function textOf(value: unknown): string {
-  if (typeof value === "string") return value.trim();
+  if (typeof value === "string") return cleanText(value);
   if (value && typeof value === "object" && "text" in value) {
     return textOf((value as { text: unknown }).text);
   }
