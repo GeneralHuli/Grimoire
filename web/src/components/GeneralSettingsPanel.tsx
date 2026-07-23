@@ -37,7 +37,11 @@ export function GeneralSettingsPanel() {
 
   return (
     <div className="settings-panel">
-      <h3>General</h3>
+      <div className="settings-panel-actions">
+        <button className="settings-save" onClick={save}>
+          {saved ? "Saved" : "Save"}
+        </button>
+      </div>
       <label className="settings-field">
         Family name
         <input
@@ -57,9 +61,6 @@ export function GeneralSettingsPanel() {
           <option value="dark">Dark</option>
         </select>
       </label>
-      <button className="settings-save" onClick={save}>
-        {saved ? "Saved" : "Save"}
-      </button>
     </div>
   );
 }

@@ -53,34 +53,42 @@ export function CalendarEventModal({ event, onClose, onSaved }: CalendarEventMod
         aria-label="Edit Event"
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
-          ×
-        </button>
-        <h3>Edit Event</h3>
-        <label className="settings-field">
-          Title
-          <input value={title} onChange={(e) => setTitle(e.target.value)} />
-        </label>
-        <label className="settings-field settings-field-inline">
-          <input type="checkbox" checked={allDay} onChange={(e) => toggleAllDay(e.target.checked)} />
-          All day
-        </label>
-        <label className="settings-field">
-          Starts
-          <input
-            type={allDay ? "date" : "datetime-local"}
-            value={start}
-            onChange={(e) => setStart(e.target.value)}
-          />
-        </label>
-        <label className="settings-field">
-          Ends
-          <input type={allDay ? "date" : "datetime-local"} value={end} onChange={(e) => setEnd(e.target.value)} />
-        </label>
-        {error && <p className="calendar-event-error">{error}</p>}
-        <button type="button" className="settings-save" onClick={save} disabled={saving}>
-          {saving ? "Saving…" : "Save"}
-        </button>
+        <div className="modal-actions">
+          <h3 className="modal-actions-title">Edit Event</h3>
+          <button type="button" className="settings-save" onClick={save} disabled={saving}>
+            {saving ? "Saving…" : "Save"}
+          </button>
+          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <label className="settings-field">
+            Title
+            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+          </label>
+          <label className="settings-field settings-field-inline">
+            <input type="checkbox" checked={allDay} onChange={(e) => toggleAllDay(e.target.checked)} />
+            All day
+          </label>
+          <label className="settings-field">
+            Starts
+            <input
+              type={allDay ? "date" : "datetime-local"}
+              value={start}
+              onChange={(e) => setStart(e.target.value)}
+            />
+          </label>
+          <label className="settings-field">
+            Ends
+            <input
+              type={allDay ? "date" : "datetime-local"}
+              value={end}
+              onChange={(e) => setEnd(e.target.value)}
+            />
+          </label>
+          {error && <p className="calendar-event-error">{error}</p>}
+        </div>
       </div>
     </div>
   );

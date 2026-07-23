@@ -19,6 +19,7 @@ export function SettingsModal({ spells, onClose }: SettingsModalProps) {
 
   const activeSpell = spells.find((s) => s.name === activeTab);
   const CustomPanel = activeSpell ? SPELL_SETTINGS_COMPONENTS[activeSpell.name] : undefined;
+  const activeLabel = tabs.find((t) => t.id === activeTab)?.label ?? "Settings";
 
   return (
     <div className="settings-overlay" onClick={onClose}>
@@ -40,17 +41,22 @@ export function SettingsModal({ spells, onClose }: SettingsModalProps) {
             </button>
           ))}
         </nav>
-        <div className="settings-content">
-          <button className="settings-close" onClick={onClose} aria-label="Close settings">
-            ×
-          </button>
-          {activeTab === "general" ? (
-            <GeneralSettingsPanel />
-          ) : CustomPanel ? (
-            <CustomPanel />
-          ) : (
-            <SpellSettingsPanel scope={activeTab} />
-          )}
+        <div className="settings-panel-wrapper">
+          <div className="modal-actions">
+            <h3 className="modal-actions-title">{activeLabel}</h3>
+            <button className="settings-close" onClick={onClose} aria-label="Close settings">
+              ×
+            </button>
+          </div>
+          <div className="settings-content">
+            {activeTab === "general" ? (
+              <GeneralSettingsPanel />
+            ) : CustomPanel ? (
+              <CustomPanel />
+            ) : (
+              <SpellSettingsPanel scope={activeTab} />
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -100,20 +100,6 @@ export function ChoresSpell() {
         {board.map((list) => (
           <div className="chores-list" key={list.id}>
             <h3>{list.title}</h3>
-            <ul className="chores-tasks">
-              {list.tasks.map((task) => (
-                <li key={task.id}>
-                  <label className={`chores-task${task.status === "completed" ? " done" : ""}`}>
-                    <input
-                      type="checkbox"
-                      checked={task.status === "completed"}
-                      onChange={() => toggleTask(list.id, task)}
-                    />
-                    {task.title}
-                  </label>
-                </li>
-              ))}
-            </ul>
             <form
               className="chores-add"
               onSubmit={(e) => {
@@ -128,6 +114,20 @@ export function ChoresSpell() {
               />
               <button type="submit">Add</button>
             </form>
+            <ul className="chores-tasks">
+              {list.tasks.map((task) => (
+                <li key={task.id}>
+                  <label className={`chores-task${task.status === "completed" ? " done" : ""}`}>
+                    <input
+                      type="checkbox"
+                      checked={task.status === "completed"}
+                      onChange={() => toggleTask(list.id, task)}
+                    />
+                    {task.title}
+                  </label>
+                </li>
+              ))}
+            </ul>
           </div>
         ))}
       </div>

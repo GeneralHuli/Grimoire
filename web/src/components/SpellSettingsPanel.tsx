@@ -50,15 +50,17 @@ export function SpellSettingsPanel({ scope }: SpellSettingsPanelProps) {
 
   return (
     <div className="settings-panel">
+      <div className="settings-panel-actions">
+        <button className="settings-save" onClick={save}>
+          {saved ? "Saved" : "Save"}
+        </button>
+      </div>
       {keys.map((key) => (
         <label className="settings-field" key={key}>
           {key}
           <SettingInput value={settings[key]} onChange={(value) => update(key, value)} />
         </label>
       ))}
-      <button className="settings-save" onClick={save}>
-        {saved ? "Saved" : "Save"}
-      </button>
     </div>
   );
 }
