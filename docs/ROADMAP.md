@@ -38,11 +38,17 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - Simple assignment/check-off UI sized for touch: tap a checkbox to complete/reopen a
   chore, add new chores inline per board
 
-## Phase 3 — Recipes Spell — **Not started**
-- Manual recipe entry (ingredients, steps, meal type, prep-ease, star rating)
-- URL import: parse `schema.org/Recipe` JSON-LD (covers most recipe sites without scraping HTML)
-- AI-generated recipes via an LLM API call (recipe returned in the same structured schema)
-- SQLite schema: recipes, ingredients, tags (meal type / ease / rating)
+## Phase 3 — Recipes Spell — **Done**
+- Manual recipe entry (ingredients, steps, meal type, prep-ease, star rating) — a card grid
+  with a create/edit/delete modal per recipe
+- URL import: parses `schema.org/Recipe` JSON-LD out of the page's `<script
+  type="application/ld+json">` blocks (covers most recipe sites without an HTML-scraping
+  library), returning an editable draft rather than saving directly
+- AI-generated recipes via the Claude API (`claude-opus-4-8`, structured JSON output),
+  same draft-then-review flow as URL import — requires `ANTHROPIC_API_KEY` in
+  `server/.env`; the rest of the Spell works without it
+- SQLite schema: `recipes` (title, meal type, ease, rating, source URL) plus
+  `recipe_ingredients` / `recipe_steps` as ordered line tables per recipe
 
 ## Phase 4 — Meal Planner Spell — **Not started**
 - Weekly meal plan UI, drag recipes onto days

@@ -302,6 +302,116 @@ body {
   cursor: pointer;
 }
 
+.recipes-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.recipes-toolbar button {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
+.recipes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.recipes-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.recipes-item-title {
+  font-size: 1.1rem;
+}
+
+.recipes-item-meta {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.recipe-editor-dialog {
+  position: relative;
+  width: min(92vw, 480px);
+  max-height: 85vh;
+  overflow-y: auto;
+  background: canvas;
+  color: canvastext;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+}
+
+.recipe-textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  padding: 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: canvas;
+  color: canvastext;
+  resize: vertical;
+}
+
+.recipe-rating {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.recipe-star {
+  border: none;
+  background: none;
+  color: color-mix(in srgb, currentColor 30%, transparent);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 0.15rem;
+  cursor: pointer;
+}
+
+.recipe-star.filled {
+  color: currentColor;
+}
+
+.recipe-editor-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.recipe-delete {
+  padding: 0.75rem 1.25rem;
+  font-size: 1.05rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, #d33 20%, transparent);
+  color: inherit;
+  cursor: pointer;
+}
+
 .grimoire-header {
   display: flex;
   align-items: center;

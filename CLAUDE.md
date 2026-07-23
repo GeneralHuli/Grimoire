@@ -44,7 +44,9 @@ This does not persist across tool calls or sessions; redo it whenever `docker` i
 
 - `server/.env` and `docker/.env` hold real secrets and already exist locally
   (both gitignored) — a working Google OAuth client is already configured, so Google
-  sign-in can be tested for real without generating new credentials.
+  sign-in can be tested for real without generating new credentials. `ANTHROPIC_API_KEY`
+  (for the Recipes Spell's "Generate with AI" feature) is a separate opt-in credential —
+  the rest of the app works without it.
 - `server/.env.example` and `docker/.env.example` are the committed templates and must
   stay blank placeholders. Real values have accidentally ended up in an `.example` file
   once before — if that happens again, move the values into the real `.env` file and
@@ -82,8 +84,8 @@ they're kept current and explain *why*, not just *what*.
 ### Shared Google sign-in
 
 `server/spells/google-account/` is the only Spell that talks to Google OAuth directly.
-It requests every scope a dependent Spell needs (Calendar today, Tasks reserved ahead of
-Phase 2) in one consent screen, and exposes `getAuthorizedClient()` for other Spells to
+It requests every scope a dependent Spell needs (Calendar and Tasks, for the Calendar and
+Chores Spells) in one consent screen, and exposes `getAuthorizedClient()` for other Spells to
 build their own Google API clients from. The refresh token lives encrypted
 (AES-256-GCM, `server/src/secretBox.ts`) in SQLite (`google_account_tokens` table) —
 never in a k8s ConfigMap/Secret. Only the static `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`

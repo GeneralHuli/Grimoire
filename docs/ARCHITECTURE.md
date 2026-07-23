@@ -120,10 +120,10 @@ without affecting others, since each Spell owns its own tables.
 
 | Integration | Status | Notes |
 |---|---|---|
-| Google Calendar | Straightforward | Shares the `google-account` Ritual's OAuth2 client + Calendar scope |
-| Google Tasks | Straightforward | Will share the same `google-account` Ritual (Phase 2), just adding the Tasks scope, already requested |
-| Recipe URL import | Straightforward | Parse `schema.org/Recipe` JSON-LD, present on most recipe sites |
-| AI recipe generation | Straightforward | Single structured-output API call |
+| Google Calendar | Done | Shares the `google-account` Ritual's OAuth2 client + Calendar scope |
+| Google Tasks | Done | Shares the same `google-account` Ritual, using the Tasks scope requested alongside Calendar's |
+| Recipe URL import | Done | Parses `schema.org/Recipe` JSON-LD out of the page's own `<script type="application/ld+json">` blocks — no HTML-scraping library needed |
+| AI recipe generation | Done | Single structured-output call to the Claude API (`claude-opus-4-8`, `output_config.format`); needs `ANTHROPIC_API_KEY` in `server/.env`, unlike the rest of the Recipes Spell |
 | Fred Meyer / Kroger | Likely feasible | Kroger family has a public developer API (product search + cart) |
 | Albertsons | **Research spike needed** | No known public API as of 2026; may need a partner application, or may end up manual-export only |
 | Google Assistant / Home | **Research spike needed** | Conversational Actions (the old voice-command platform) shut down in 2023. Current path is likely the Local Home SDK (device control, not general voice Q&A) or a self-hosted bridge (e.g. Home Assistant's conversation integration). Scope this properly before committing Phase 7 engineering time. |

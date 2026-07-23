@@ -1,0 +1,10 @@
+{
+  "name": "recipes",
+  "displayName": "Recipes",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "recipes",
+  "config": {
+    "position": "top-left"
+  }
+}
