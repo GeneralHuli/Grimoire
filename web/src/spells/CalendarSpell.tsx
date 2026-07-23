@@ -13,7 +13,9 @@ export function CalendarSpell() {
   const [events, setEvents] = useState<CalendarEvent[]>([]);
 
   useEffect(() => {
-    fetch("/api/spells/calendar/status")
+    // Calendar requires the google-account Spell (see spell.json) and has no
+    // connection state of its own — it just checks the shared account status.
+    fetch("/api/spells/google-account/status")
       .then((res) => res.json())
       .then((data: { connected: boolean }) => setConnected(data.connected));
   }, []);
@@ -38,8 +40,9 @@ export function CalendarSpell() {
     return (
       <div className="spell-card">
         <h2>Family Calendar</h2>
-        <a className="calendar-connect" href="/api/spells/calendar/auth/start">
-          Connect Google Calendar
+        <p>Needs a connected Google Account.</p>
+        <a className="calendar-connect" href="/api/spells/google-account/auth/start">
+          Sign in with Google
         </a>
       </div>
     );

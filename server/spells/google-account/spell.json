@@ -1,0 +1,8 @@
+{
+  "name": "google-account",
+  "displayName": "Google Account",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "google-account",
+  "config": {}
+}

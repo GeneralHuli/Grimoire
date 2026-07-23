@@ -72,6 +72,33 @@ what it provides, so the core app never hardcodes feature-specific logic.
   require a redeploy.
 - Each Spell owns its own DB tables/migrations — the core app only owns the spell
   registry table.
+- A manifest may declare `"requires": ["other-spell-name"]`. `moduleLoader.ts` validates
+  every dependency exists before loading anything (fails startup loudly if one is
+  missing) and topologically orders loading so a dependency's module always loads before
+  its dependent — see "Shared Google sign-in" below for why this exists.
+- **Settings**: every Spell automatically gets a tab in the Settings modal. The generic
+  key/value editor (`SpellSettingsPanel`) is the default, reading/writing
+  `/api/settings/:scope` (scope = the Spell's manifest `name`, or `general` for app-wide
+  settings) — manifest `config` acts as defaults, and saved values override them. A Spell
+  can register a custom panel instead in `web/src/spells/settings/registry.tsx` when the
+  generic editor isn't enough (see `GoogleAccountSettings`).
+
+### Shared Google sign-in
+
+Rather than each Google-backed Spell (Calendar, and Chores in Phase 2) running its own
+OAuth flow, a standalone **`google-account` Spell** owns the family's one Google sign-in
+and requests every scope any dependent Spell needs (Calendar + Tasks today) in a single
+consent screen. Dependent Spells declare `"requires": ["google-account"]` in their
+manifest and call `getAuthorizedClient()` from `spells/google-account/client.ts` (a
+normal cross-Spell import — Spells aren't process-isolated, just organizationally
+separated) to get a ready-to-use OAuth2 client, or `null` if no account is linked yet.
+
+The refresh token this produces is **never** stored as a k8s ConfigMap/Secret value — it
+only ever lives encrypted (AES-256-GCM, see `secretBox.ts`) in the `google_account_tokens`
+SQLite table, written by the interactive `/auth/callback` flow. The only Google-related
+values that belong in a k8s Secret (Phase 8) are `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
+— they identify the Grimoire app's own OAuth client registration, not any user's session,
+so they're static config rather than a per-account secret.
 
 ## Data storage
 
@@ -84,8 +111,8 @@ without affecting others, since each Spell owns its own tables.
 
 | Integration | Status | Notes |
 |---|---|---|
-| Google Calendar | Straightforward | Standard OAuth2 + Calendar API |
-| Google Tasks | Straightforward | Standard OAuth2 + Tasks API |
+| Google Calendar | Straightforward | Shares the `google-account` Spell's OAuth2 client + Calendar scope |
+| Google Tasks | Straightforward | Will share the same `google-account` Spell (Phase 2), just adding the Tasks scope, already requested |
 | Recipe URL import | Straightforward | Parse `schema.org/Recipe` JSON-LD, present on most recipe sites |
 | AI recipe generation | Straightforward | Single structured-output API call |
 | Fred Meyer / Kroger | Likely feasible | Kroger family has a public developer API (product search + cart) |

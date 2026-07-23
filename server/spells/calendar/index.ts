@@ -1,19 +1,11 @@
 import type { Express, Request, Response } from "express";
 import { google } from "googleapis";
 import type { SpellModule } from "../../src/types.js";
-import { createOAuthClient, getConsentUrl } from "./googleAuth.js";
-import {
-  saveRefreshToken,
-  loadRefreshToken,
-  isConnected,
-  clearRefreshToken,
-} from "./tokenStore.js";
+import { getAuthorizedClient } from "../google-account/client.js";
 
 function getCalendarClient() {
-  const refreshToken = loadRefreshToken();
-  if (!refreshToken) return null;
-  const client = createOAuthClient();
-  client.setCredentials({ refresh_token: refreshToken });
+  const client = getAuthorizedClient();
+  if (!client) return null;
   return google.calendar({ version: "v3", auth: client });
 }
 
@@ -37,49 +29,12 @@ function handleErrors(fn: (req: Request, res: Response) => Promise<void>) {
 
 const mod: SpellModule = {
   register(app: Express) {
-    app.get("/api/spells/calendar/status", (_req, res) => {
-      res.json({ connected: isConnected() });
-    });
-
-    app.get("/api/spells/calendar/auth/start", (_req, res) => {
-      res.redirect(getConsentUrl());
-    });
-
-    app.post("/api/spells/calendar/auth/disconnect", (_req, res) => {
-      clearRefreshToken();
-      res.json({ connected: false });
-    });
-
-    app.get(
-      "/api/spells/calendar/auth/callback",
-      handleErrors(async (req, res) => {
-        const code = req.query.code;
-        if (typeof code !== "string") {
-          res.status(400).send("Missing authorization code");
-          return;
-        }
-        const client = createOAuthClient();
-        const { tokens } = await client.getToken(code);
-        if (!tokens.refresh_token) {
-          res
-            .status(400)
-            .send(
-              "Google didn't return a refresh token. Remove Grimoire's access at " +
-                "https://myaccount.google.com/permissions and try connecting again."
-            );
-          return;
-        }
-        saveRefreshToken(tokens.refresh_token);
-        res.redirect("/");
-      })
-    );
-
     app.get(
       "/api/spells/calendar/events",
       handleErrors(async (req, res) => {
         const calendar = getCalendarClient();
         if (!calendar) {
-          res.status(401).json({ error: "not_connected" });
+          res.status(401).json({ error: "google_not_connected" });
           return;
         }
         const range = req.query.range === "day" ? "day" : "week";
@@ -107,7 +62,7 @@ const mod: SpellModule = {
       handleErrors(async (req, res) => {
         const calendar = getCalendarClient();
         if (!calendar) {
-          res.status(401).json({ error: "not_connected" });
+          res.status(401).json({ error: "google_not_connected" });
           return;
         }
         const { title, start, end, allDay } = req.body as {

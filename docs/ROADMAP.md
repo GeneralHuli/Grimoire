@@ -15,13 +15,19 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - Docker Compose dev environment
 - CI: lint + typecheck + test on push
 
-## Phase 1 — Calendar Spell
-- Google OAuth2 (installed-app flow, refresh token stored encrypted at rest)
+## Phase 1 — Calendar Spell + shared Google sign-in
+- Standalone `google-account` Spell: one "Sign in with Google" flow requesting every
+  scope a dependent Spell needs (Calendar now, Tasks below) in a single consent screen;
+  refresh token stored encrypted at rest, never in a ConfigMap/Secret
+- Calendar Spell declares `requires: ["google-account"]` and reuses that connection —
+  no separate OAuth flow of its own
 - Read/write against Google Calendar API
 - Touchscreen-first calendar view (day/week), kiosk-safe (no accidental navigation)
 
 ## Phase 2 — Chores Spell
 - Google Tasks API integration, per-family-member task lists
+- Declares `requires: ["google-account"]` — reuses the Phase 1 sign-in (Tasks scope is
+  already requested by the shared Google Account Spell), no new consent screen needed
 - Simple assignment/check-off UI sized for touch
 
 ## Phase 3 — Recipes Spell
@@ -61,8 +67,9 @@ Phases are sequential but each is scoped to ship something usable on its own.
   so no on-device resource constraints drive the manifest design
 - Move from Docker Compose (dev) to the k8s cluster (k3s/k0s or full k8s — TBD based on
   what's already running on the Proxmox host)
-- Manifests: Deployment, Service, PVC (SQLite file persistence), ConfigMap, Secrets
-  (OAuth tokens, API keys)
+- Manifests: Deployment, Service, PVC (SQLite file persistence — this is where the
+  encrypted Google refresh token lives), ConfigMap, Secrets (OAuth *client*
+  IDs/secrets and other static API keys only — never a user's OAuth token)
 - Ingress for LAN access from family devices (Pi, phones, laptops)
 
 ## Phase 9 — Mobile-Friendly Web App

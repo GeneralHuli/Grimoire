@@ -8,6 +8,8 @@ export interface SpellManifest {
   backend: string;
   /** Name of the frontend component in web/src/spells to render for this spell. */
   frontend: string;
+  /** Names of other Spells (by manifest `name`) that must be present for this one to load. */
+  requires?: string[];
   config?: Record<string, unknown>;
 }
 

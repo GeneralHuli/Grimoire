@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "backend": "./index.ts",
   "frontend": "calendar",
+  "requires": ["google-account"],
   "config": {
     "position": "top-left",
     "defaultView": "week"
