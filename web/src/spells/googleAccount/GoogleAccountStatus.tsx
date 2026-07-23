@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 
 /**
- * Shared status + connect/disconnect UI, used by both the dashboard card
- * (GoogleAccountSpell) and the settings tab (GoogleAccountSettings) so there's one
- * place that knows how to talk to the google-account Spell's API.
+ * Status + connect/disconnect UI for the settings tab (GoogleAccountSettings).
+ * google-account is a Ritual — it has no home-page display, only this settings panel.
  */
 export function GoogleAccountStatus() {
   const [connected, setConnected] = useState<boolean | null>(null);

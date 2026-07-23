@@ -18,7 +18,7 @@ export function SettingsModal({ spells, onClose }: SettingsModalProps) {
   ];
 
   const activeSpell = spells.find((s) => s.name === activeTab);
-  const CustomPanel = activeSpell ? SPELL_SETTINGS_COMPONENTS[activeSpell.frontend] : undefined;
+  const CustomPanel = activeSpell ? SPELL_SETTINGS_COMPONENTS[activeSpell.name] : undefined;
 
   return (
     <div className="settings-overlay" onClick={onClose}>

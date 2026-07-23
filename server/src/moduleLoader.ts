@@ -46,7 +46,11 @@ function validateRequirements(spells: Map<string, DiscoveredSpell>): void {
   }
 }
 
-/** Orders Spells so a `requires` dependency always loads before its dependent. */
+/**
+ * Orders Spells so a `requires` dependency always loads before its dependent, and so
+ * Rituals load before ordinary Spells (Rituals are likely dependencies, e.g. shared
+ * auth, even for Spells that don't explicitly `requires` them).
+ */
 function topologicalOrder(spells: Map<string, DiscoveredSpell>): string[] {
   const order: string[] = [];
   const visited = new Set<string>();
@@ -66,7 +70,11 @@ function topologicalOrder(spells: Map<string, DiscoveredSpell>): string[] {
     order.push(name);
   }
 
-  for (const name of spells.keys()) visit(name);
+  const names = [...spells.keys()];
+  const rituals = names.filter((name) => spells.get(name)!.manifest.kind === "ritual");
+  const rest = names.filter((name) => spells.get(name)!.manifest.kind !== "ritual");
+  for (const name of rituals) visit(name);
+  for (const name of rest) visit(name);
   return order;
 }
 
