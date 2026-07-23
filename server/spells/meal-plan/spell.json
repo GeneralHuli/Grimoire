@@ -1,0 +1,11 @@
+{
+  "name": "meal-plan",
+  "displayName": "Meal Planner",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "meal-plan",
+  "requires": ["recipes"],
+  "config": {
+    "position": "top-left"
+  }
+}

@@ -50,9 +50,17 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - SQLite schema: `recipes` (title, meal type, ease, rating, source URL) plus
   `recipe_ingredients` / `recipe_steps` as ordered line tables per recipe
 
-## Phase 4 — Meal Planner Spell — **Not started**
-- Weekly meal plan UI, drag recipes onto days
-- Depends on: Recipes Spell
+## Phase 4 — Meal Planner Spell — **Done**
+- Weekly meal plan grid (Sun–Sat, prev/today/next navigation like the Calendar Spell),
+  one recipe per day, keyed by date so past/future weeks are independently editable
+- Two ways to assign a recipe to a day: native HTML5 drag-and-drop from the recipe chip
+  list, or tap a recipe then tap a day (touch-friendly fallback where drag gestures are
+  unreliable)
+- Declares `requires: ["recipes"]` — reads the Recipes Spell's `recipes` table directly
+  via a SQL join (`meal_plan_entries.recipe_id` → `recipes.id`); a deleted recipe's plan
+  entries simply drop out of the view rather than dangling
+- Frontend fetches the recipe list straight from the Recipes Spell's existing
+  `GET /api/spells/recipes/recipes` endpoint — no duplicated recipe list on the backend
 
 ## Phase 5 — Grocery List Spell — **Not started**
 - Auto-aggregate ingredients from the active meal plan
