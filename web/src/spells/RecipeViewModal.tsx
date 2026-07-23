@@ -25,27 +25,32 @@ export function RecipeViewModal({ recipe, onClose, onEdit }: RecipeViewModalProp
           {recipe.rating > 0 ? ` · ${"★".repeat(recipe.rating)}` : ""}
         </p>
 
-        <h4>Ingredients</h4>
-        {recipe.ingredients.length > 0 ? (
-          <ul className="recipe-view-list">
-            {recipe.ingredients.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="recipe-view-empty">No ingredients listed.</p>
-        )}
-
-        <h4>Steps</h4>
-        {recipe.steps.length > 0 ? (
-          <ul className="recipe-view-list">
-            {recipe.steps.map((item, i) => (
-              <li key={i}>{item}</li>
-            ))}
-          </ul>
-        ) : (
-          <p className="recipe-view-empty">No steps listed.</p>
-        )}
+        <div className="recipe-view-columns">
+          <div className="recipe-view-column">
+            <h4>Ingredients</h4>
+            {recipe.ingredients.length > 0 ? (
+              <ul className="recipe-view-list">
+                {recipe.ingredients.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="recipe-view-empty">No ingredients listed.</p>
+            )}
+          </div>
+          <div className="recipe-view-column">
+            <h4>Steps</h4>
+            {recipe.steps.length > 0 ? (
+              <ul className="recipe-view-list">
+                {recipe.steps.map((item, i) => (
+                  <li key={i}>{item}</li>
+                ))}
+              </ul>
+            ) : (
+              <p className="recipe-view-empty">No steps listed.</p>
+            )}
+          </div>
+        </div>
 
         {recipe.sourceUrl && (
           <p className="recipe-view-source">

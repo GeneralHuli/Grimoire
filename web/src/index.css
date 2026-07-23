@@ -412,12 +412,17 @@ body {
   cursor: pointer;
 }
 
-/* Sized for reading at arm's length while cooking, not just skimming. */
+/*
+ * Sized for reading at arm's length while cooking, not just skimming. The dialog
+ * itself doesn't scroll — the ingredient/step columns each scroll independently
+ * within it, so the header and Edit button stay put while you read either list.
+ */
 .recipe-view-dialog {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: min(92vw, 720px);
   max-height: 88vh;
-  overflow-y: auto;
   background: canvas;
   color: canvastext;
   border-radius: 1rem;
@@ -430,14 +435,34 @@ body {
   font-size: 1.5rem;
 }
 
-.recipe-view-dialog h4 {
-  margin: 1.5rem 0 0.5rem;
-  font-size: 1.1rem;
-}
-
 .recipe-view-meta {
   opacity: 0.7;
   margin: 0;
+}
+
+.recipe-view-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.recipe-view-column {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.recipe-view-column h4 {
+  position: sticky;
+  top: 0;
+  margin: 0 0 0.5rem;
+  padding-bottom: 0.35rem;
+  background: canvas;
+  font-size: 1.1rem;
 }
 
 .recipe-view-list {
@@ -464,6 +489,18 @@ body {
 
 .recipe-view-dialog .settings-save {
   margin-top: 1.5rem;
+  align-self: flex-start;
+}
+
+@media (max-width: 480px) {
+  .recipe-view-columns {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .recipe-view-column {
+    overflow-y: visible;
+  }
 }
 
 .grimoire-header {
