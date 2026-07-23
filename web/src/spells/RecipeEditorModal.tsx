@@ -65,66 +65,8 @@ export function RecipeEditorModal({ id, initial, onClose, onSaved, onDeleted }: 
         aria-label={id ? "Edit Recipe" : "New Recipe"}
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
-          ×
-        </button>
-        <h3>{id ? "Edit Recipe" : "New Recipe"}</h3>
-        <label className="settings-field">
-          Title
-          <input value={title} onChange={(e) => setTitle(e.target.value)} />
-        </label>
-        <label className="settings-field">
-          Meal type
-          <input
-            value={mealType}
-            onChange={(e) => setMealType(e.target.value)}
-            placeholder="e.g. Dinner, Breakfast"
-          />
-        </label>
-        <label className="settings-field">
-          Ease
-          <select value={ease} onChange={(e) => setEase(e.target.value)}>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-        </label>
-        <div className="settings-field">
-          Rating
-          <div className="recipe-rating">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <button
-                key={n}
-                type="button"
-                className={`recipe-star${n <= rating ? " filled" : ""}`}
-                onClick={() => setRating(n === rating ? 0 : n)}
-                aria-label={`${n} star${n > 1 ? "s" : ""}`}
-              >
-                ★
-              </button>
-            ))}
-          </div>
-        </div>
-        <label className="settings-field">
-          Ingredients (one per line)
-          <textarea
-            className="recipe-textarea"
-            value={ingredientsText}
-            onChange={(e) => setIngredientsText(e.target.value)}
-            rows={6}
-          />
-        </label>
-        <label className="settings-field">
-          Steps (one per line)
-          <textarea
-            className="recipe-textarea"
-            value={stepsText}
-            onChange={(e) => setStepsText(e.target.value)}
-            rows={6}
-          />
-        </label>
-        {error && <p className="calendar-event-error">{error}</p>}
-        <div className="recipe-editor-actions">
+        <div className="modal-actions">
+          <h3 className="modal-actions-title">{id ? "Edit Recipe" : "New Recipe"}</h3>
           {id && (
             <button type="button" className="recipe-delete" onClick={del}>
               Delete
@@ -133,6 +75,66 @@ export function RecipeEditorModal({ id, initial, onClose, onSaved, onDeleted }: 
           <button type="button" className="settings-save" onClick={save} disabled={saving}>
             {saving ? "Saving…" : "Save"}
           </button>
+          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
+        <div className="modal-body">
+          <label className="settings-field">
+            Title
+            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+          </label>
+          <label className="settings-field">
+            Meal type
+            <input
+              value={mealType}
+              onChange={(e) => setMealType(e.target.value)}
+              placeholder="e.g. Dinner, Breakfast"
+            />
+          </label>
+          <label className="settings-field">
+            Ease
+            <select value={ease} onChange={(e) => setEase(e.target.value)}>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </label>
+          <div className="settings-field">
+            Rating
+            <div className="recipe-rating">
+              {[1, 2, 3, 4, 5].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  className={`recipe-star${n <= rating ? " filled" : ""}`}
+                  onClick={() => setRating(n === rating ? 0 : n)}
+                  aria-label={`${n} star${n > 1 ? "s" : ""}`}
+                >
+                  ★
+                </button>
+              ))}
+            </div>
+          </div>
+          <label className="settings-field">
+            Ingredients (one per line)
+            <textarea
+              className="recipe-textarea"
+              value={ingredientsText}
+              onChange={(e) => setIngredientsText(e.target.value)}
+              rows={6}
+            />
+          </label>
+          <label className="settings-field">
+            Steps (one per line)
+            <textarea
+              className="recipe-textarea"
+              value={stepsText}
+              onChange={(e) => setStepsText(e.target.value)}
+              rows={6}
+            />
+          </label>
+          {error && <p className="calendar-event-error">{error}</p>}
         </div>
       </div>
     </div>

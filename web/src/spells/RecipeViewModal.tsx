@@ -16,10 +16,15 @@ export function RecipeViewModal({ recipe, onClose, onEdit }: RecipeViewModalProp
         aria-label={recipe.title}
         onClick={(e) => e.stopPropagation()}
       >
-        <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
-          ×
-        </button>
-        <h3>{recipe.title}</h3>
+        <div className="modal-actions">
+          <h3 className="modal-actions-title">{recipe.title}</h3>
+          <button type="button" className="settings-save" onClick={onEdit}>
+            Edit
+          </button>
+          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+            ×
+          </button>
+        </div>
         <p className="recipe-view-meta">
           {recipe.mealType || "—"} · {recipe.ease}
           {recipe.rating > 0 ? ` · ${"★".repeat(recipe.rating)}` : ""}
@@ -59,10 +64,6 @@ export function RecipeViewModal({ recipe, onClose, onEdit }: RecipeViewModalProp
             </a>
           </p>
         )}
-
-        <button type="button" className="settings-save" onClick={onEdit}>
-          Edit
-        </button>
       </div>
     </div>
   );

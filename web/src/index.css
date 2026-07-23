@@ -210,7 +210,10 @@ body {
 
 .calendar-event-dialog {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: min(90vw, 420px);
+  max-height: 85vh;
   background: canvas;
   color: canvastext;
   border-radius: 1rem;
@@ -280,6 +283,7 @@ body {
 .chores-add {
   display: flex;
   gap: 0.4rem;
+  margin-bottom: 0.75rem;
 }
 
 .chores-add input {
@@ -355,9 +359,10 @@ body {
 
 .recipe-editor-dialog {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: min(92vw, 480px);
   max-height: 85vh;
-  overflow-y: auto;
   background: canvas;
   color: canvastext;
   border-radius: 1rem;
@@ -395,13 +400,6 @@ body {
   color: currentColor;
 }
 
-.recipe-editor-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
 .recipe-delete {
   padding: 0.75rem 1.25rem;
   font-size: 1.05rem;
@@ -415,13 +413,13 @@ body {
 /*
  * Sized for reading at arm's length while cooking, not just skimming. The dialog
  * itself doesn't scroll — the ingredient/step columns each scroll independently
- * within it, so the header and Edit button stay put while you read either list.
+ * within it, so the header and its action buttons stay put while you read either list.
  */
 .recipe-view-dialog {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: min(92vw, 720px);
+  width: min(95vw, 1000px);
   max-height: 88vh;
   background: canvas;
   color: canvastext;
@@ -430,14 +428,13 @@ body {
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
 }
 
-.recipe-view-dialog h3 {
-  margin-top: 0;
+.recipe-view-dialog .modal-actions-title {
   font-size: 1.5rem;
 }
 
 .recipe-view-meta {
   opacity: 0.7;
-  margin: 0;
+  margin: 0 0 0.5rem;
 }
 
 .recipe-view-columns {
@@ -487,11 +484,6 @@ body {
   font-size: 0.9rem;
 }
 
-.recipe-view-dialog .settings-save {
-  margin-top: 1.5rem;
-  align-self: flex-start;
-}
-
 @media (max-width: 480px) {
   .recipe-view-columns {
     grid-template-columns: 1fr;
@@ -503,11 +495,21 @@ body {
   }
 }
 
+/*
+ * Design rule: every action button lives at the top of its page/modal/section and is
+ * locked there — never scrollable out of reach. The header is the page-level instance:
+ * sticky above the dashboard grid regardless of how far the page scrolls.
+ */
 .grimoire-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
+  background: canvas;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
 }
 
 .grimoire-header h1 {
@@ -535,6 +537,38 @@ body {
   align-items: center;
   justify-content: center;
   z-index: 100;
+}
+
+/*
+ * The modal-level instance of the "buttons at top, locked" rule: every dialog is a flex
+ * column with .modal-actions as a non-scrolling first child and .modal-body as the only
+ * part that scrolls — the action row is structurally outside the scroll area, so it's
+ * never a CSS-sticky edge case, it's just not part of what can scroll.
+ */
+.modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding-bottom: 0.85rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.modal-actions-title {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: 1.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modal-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .settings-dialog {
@@ -574,17 +608,42 @@ body {
   font-weight: 600;
 }
 
-.settings-content {
-  position: relative;
+.settings-panel-wrapper {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-panel-wrapper .modal-actions {
+  padding: 1rem 1.5rem 0.85rem;
+  margin-bottom: 0;
+}
+
+.settings-content {
+  flex: 1;
+  min-height: 0;
   padding: 1.5rem;
   overflow-y: auto;
 }
 
+/*
+ * Each settings panel renders its own Save button as the first thing in
+ * .settings-content (several panels share that one scrolling region, unlike the
+ * single-purpose modals above) — sticky pins it to the top of that scroll area.
+ */
+.settings-panel-actions {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: canvas;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+  border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+}
+
 .settings-close {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
+  flex-shrink: 0;
   width: 2.5rem;
   height: 2.5rem;
   font-size: 1.25rem;

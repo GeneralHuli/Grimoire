@@ -64,7 +64,11 @@ export function CalendarSettings() {
 
   return (
     <div className="settings-panel">
-      <h3>Family Calendar</h3>
+      <div className="settings-panel-actions">
+        <button className="settings-save" onClick={save}>
+          {saved ? "Saved" : "Save"}
+        </button>
+      </div>
       <label className="settings-field">
         Calendar to display
         <select
@@ -90,9 +94,6 @@ export function CalendarSettings() {
           <option value="day">Day</option>
         </select>
       </label>
-      <button className="settings-save" onClick={save}>
-        {saved ? "Saved" : "Save"}
-      </button>
     </div>
   );
 }

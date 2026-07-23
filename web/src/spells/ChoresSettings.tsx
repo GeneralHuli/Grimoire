@@ -58,7 +58,11 @@ export function ChoresSettings() {
 
   return (
     <div className="settings-panel">
-      <h3>Chores</h3>
+      <div className="settings-panel-actions">
+        <button className="settings-save" onClick={save}>
+          {saved ? "Saved" : "Save"}
+        </button>
+      </div>
       <p>Choose which Google Task lists to show as boards — e.g. one per family member.</p>
       {tasklists.map((list) => (
         <label className="settings-field settings-field-inline" key={list.id}>
@@ -70,9 +74,6 @@ export function ChoresSettings() {
           {list.title}
         </label>
       ))}
-      <button className="settings-save" onClick={save}>
-        {saved ? "Saved" : "Save"}
-      </button>
     </div>
   );
 }
