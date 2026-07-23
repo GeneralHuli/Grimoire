@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 import { GoogleAccountSettings } from "../GoogleAccountSettings";
 import { CalendarSettings } from "../CalendarSettings";
+import { ChoresSettings } from "../ChoresSettings";
 
 /**
  * Maps a Spell's manifest `name` to a custom settings panel. Spells not
@@ -9,4 +10,5 @@ import { CalendarSettings } from "../CalendarSettings";
 export const SPELL_SETTINGS_COMPONENTS: Record<string, ComponentType> = {
   "google-account": GoogleAccountSettings,
   calendar: CalendarSettings,
+  chores: ChoresSettings,
 };

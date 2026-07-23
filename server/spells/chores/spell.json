@@ -1,0 +1,12 @@
+{
+  "name": "chores",
+  "displayName": "Chores",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "chores",
+  "requires": ["google-account"],
+  "config": {
+    "position": "top-left",
+    "listIds": []
+  }
+}

@@ -30,11 +30,13 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - Touchscreen-first calendar view (month/week/day, month is the default), kiosk-safe:
   tapping a day in Month/Week opens that day's view, tapping an event opens an edit modal
 
-## Phase 2 — Chores Spell — **Not started**
-- Google Tasks API integration, per-family-member task lists
+## Phase 2 — Chores Spell — **Done**
+- Google Tasks API integration: each selected Google Task list is shown as a
+  family-member board (`GET /api/spells/chores/tasklists` + a saved `listIds` setting)
 - Declares `requires: ["google-account"]` — reuses the Phase 1 sign-in (Tasks scope is
   already requested by the shared Google Account Spell), no new consent screen needed
-- Simple assignment/check-off UI sized for touch
+- Simple assignment/check-off UI sized for touch: tap a checkbox to complete/reopen a
+  chore, add new chores inline per board
 
 ## Phase 3 — Recipes Spell — **Not started**
 - Manual recipe entry (ingredients, steps, meal type, prep-ease, star rating)
