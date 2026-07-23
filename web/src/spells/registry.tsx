@@ -1,5 +1,6 @@
 import type { ComponentType } from "react";
 import { CalendarSpell } from "./CalendarSpell";
+import { ChoresSpell } from "./ChoresSpell";
 
 /**
  * Maps a Spell's manifest `frontend` field to the component that renders it.
@@ -9,4 +10,5 @@ import { CalendarSpell } from "./CalendarSpell";
  */
 export const SPELL_COMPONENTS: Record<string, ComponentType> = {
   calendar: CalendarSpell,
+  chores: ChoresSpell,
 };
