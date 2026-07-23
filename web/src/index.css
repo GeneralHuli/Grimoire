@@ -495,6 +495,90 @@ body {
   }
 }
 
+.meal-plan-hint {
+  font-size: 0.85rem;
+  opacity: 0.7;
+  margin: 0 0 0.5rem;
+}
+
+.meal-plan-recipes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.meal-plan-recipe-chip {
+  padding: 0.5rem 0.85rem;
+  font-size: 0.95rem;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  color: inherit;
+  cursor: grab;
+}
+
+.meal-plan-recipe-chip.selected {
+  background: color-mix(in srgb, currentColor 30%, transparent);
+  font-weight: 600;
+}
+
+.meal-plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+}
+
+.meal-plan-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-height: 6rem;
+  padding: 0.6rem;
+  border: 1px solid color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.meal-plan-day.today {
+  outline: 2px solid color-mix(in srgb, currentColor 30%, transparent);
+}
+
+.meal-plan-day h4 {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.7;
+}
+
+.meal-plan-entry {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+  font-size: 1rem;
+  line-height: 1.4;
+}
+
+.meal-plan-clear {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  opacity: 0.6;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.meal-plan-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.5;
+}
+
 /*
  * Design rule: every action button lives at the top of its page/modal/section and is
  * locked there — never scrollable out of reach. The header is the page-level instance:
