@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { RecipeEditorModal } from "./RecipeEditorModal";
 import { RecipeImportModal } from "./RecipeImportModal";
 import { RecipeGenerateModal } from "./RecipeGenerateModal";
 import { RecipeViewModal } from "./RecipeViewModal";
+import { RECIPE_DRAG_TYPE } from "./recipeDrag";
 
 export interface RecipeFields {
   title: string;
@@ -42,10 +43,20 @@ export function RecipesSpell() {
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [importing, setImporting] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     refresh();
   }, []);
+
+  const filtered = useMemo(() => {
+    if (!recipes) return recipes;
+    const q = search.trim().toLowerCase();
+    if (!q) return recipes;
+    return recipes.filter(
+      (recipe) => recipe.title.toLowerCase().includes(q) || recipe.mealType.toLowerCase().includes(q)
+    );
+  }, [recipes, search]);
 
   function refresh() {
     fetch("/api/spells/recipes/recipes")
@@ -78,15 +89,32 @@ export function RecipesSpell() {
         <button type="button" onClick={() => setGenerating(true)}>
           Generate with AI
         </button>
+        <input
+          type="search"
+          className="recipes-search"
+          placeholder="Search recipes…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          aria-label="Search recipes"
+        />
       </div>
 
       {recipes === null && <p>Loading…</p>}
       {recipes !== null && recipes.length === 0 && <p>No recipes yet.</p>}
-      {recipes !== null && recipes.length > 0 && (
+      {filtered !== null && filtered.length === 0 && recipes !== null && recipes.length > 0 && (
+        <p>No recipes match "{search}".</p>
+      )}
+      {filtered !== null && filtered.length > 0 && (
         <ul className="recipes-list">
-          {recipes.map((recipe) => (
+          {filtered.map((recipe) => (
             <li key={recipe.id}>
-              <button type="button" className="recipes-item" onClick={() => openRecipe(recipe.id)}>
+              <button
+                type="button"
+                className="recipes-item"
+                draggable
+                onDragStart={(e) => e.dataTransfer.setData(RECIPE_DRAG_TYPE, recipe.id)}
+                onClick={() => openRecipe(recipe.id)}
+              >
                 <span className="recipes-item-title">{recipe.title}</span>
                 <span className="recipes-item-meta">
                   {recipe.mealType || "—"} · {recipe.ease}

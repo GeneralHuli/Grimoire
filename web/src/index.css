@@ -323,6 +323,22 @@ body {
   cursor: pointer;
 }
 
+.recipes-search {
+  flex: 1;
+  min-width: 10rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: canvas;
+  color: canvastext;
+}
+
+.modal-body .recipes-search {
+  width: 100%;
+  margin-bottom: 0.85rem;
+}
+
 .recipes-list {
   list-style: none;
   margin: 0;
@@ -345,6 +361,11 @@ body {
   color: inherit;
   font: inherit;
   text-align: left;
+  cursor: grab;
+}
+
+/* The picker modal reuses .recipes-item for a tap-to-select list — not draggable there. */
+.modal-body .recipes-item {
   cursor: pointer;
 }
 
@@ -499,28 +520,6 @@ body {
   font-size: 0.85rem;
   opacity: 0.7;
   margin: 0 0 0.5rem;
-}
-
-.meal-plan-recipes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.meal-plan-recipe-chip {
-  padding: 0.5rem 0.85rem;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  color: inherit;
-  cursor: grab;
-}
-
-.meal-plan-recipe-chip.selected {
-  background: color-mix(in srgb, currentColor 30%, transparent);
-  font-weight: 600;
 }
 
 .meal-plan-grid {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import type { RecipeSummary } from "./RecipesSpell";
+import { MealPlanRecipePickerModal } from "./MealPlanRecipePickerModal";
+import { RECIPE_DRAG_TYPE } from "./recipeDrag";
 
 interface MealPlanEntry {
   date: string;
@@ -11,13 +13,12 @@ interface MealPlanEntry {
 }
 
 const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const RECIPE_DRAG_TYPE = "application/x-grimoire-recipe-id";
 
 export function MealPlanSpell() {
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [entries, setEntries] = useState<Record<string, MealPlanEntry>>({});
-  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
+  const [pickingDate, setPickingDate] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/spells/recipes/recipes")
@@ -42,7 +43,7 @@ export function MealPlanSpell() {
       ...prev,
       [date]: { date, recipeId, title: recipe.title, mealType: recipe.mealType, ease: recipe.ease, rating: recipe.rating },
     }));
-    setSelectedRecipeId(null);
+    setPickingDate(null);
     await fetch(`/api/spells/meal-plan/entries/${date}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -79,72 +80,61 @@ export function MealPlanSpell() {
         <span className="calendar-label">{headerLabel(weekStart)}</span>
       </div>
 
-      {recipes.length === 0 ? (
-        <p>Add recipes in the Recipes Spell to start planning meals.</p>
-      ) : (
-        <>
-          <p className="meal-plan-hint">
-            Tap a recipe, then tap a day to place it — or drag a recipe onto a day.
-          </p>
-          <div className="meal-plan-recipes">
-            {recipes.map((recipe) => (
-              <button
-                key={recipe.id}
-                type="button"
-                draggable
-                className={`meal-plan-recipe-chip${selectedRecipeId === recipe.id ? " selected" : ""}`}
-                onDragStart={(e) => e.dataTransfer.setData(RECIPE_DRAG_TYPE, recipe.id)}
-                onClick={() => setSelectedRecipeId((prev) => (prev === recipe.id ? null : recipe.id))}
-              >
-                {recipe.title}
-              </button>
-            ))}
-          </div>
+      <p className="meal-plan-hint">
+        {recipes.length === 0
+          ? "Add recipes in the Recipes Spell to start planning meals."
+          : "Tap a day to choose a recipe, or drag a recipe from the Recipes Spell onto a day."}
+      </p>
 
-          <div className="meal-plan-grid">
-            {days.map((day) => {
-              const key = formatDateParam(day);
-              const entry = entries[key];
-              return (
-                <div
-                  key={key}
-                  className={`meal-plan-day${isSameDay(day, new Date()) ? " today" : ""}`}
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    const recipeId = e.dataTransfer.getData(RECIPE_DRAG_TYPE);
-                    if (recipeId) assign(key, recipeId);
-                  }}
-                  onClick={() => {
-                    if (selectedRecipeId) assign(key, selectedRecipeId);
-                  }}
-                >
-                  <h4>
-                    {WEEKDAY_LABELS[day.getDay()]} {day.getDate()}
-                  </h4>
-                  {entry ? (
-                    <div className="meal-plan-entry">
-                      <span>{entry.title}</span>
-                      <button
-                        type="button"
-                        className="meal-plan-clear"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          clear(key);
-                        }}
-                        aria-label={`Remove ${entry.title} from ${key}`}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ) : (
-                    <p className="meal-plan-empty">No meal planned</p>
-                  )}
+      <div className="meal-plan-grid">
+        {days.map((day) => {
+          const key = formatDateParam(day);
+          const entry = entries[key];
+          return (
+            <div
+              key={key}
+              className={`meal-plan-day${isSameDay(day, new Date()) ? " today" : ""}`}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                const recipeId = e.dataTransfer.getData(RECIPE_DRAG_TYPE);
+                if (recipeId) assign(key, recipeId);
+              }}
+              onClick={() => setPickingDate(key)}
+            >
+              <h4>
+                {WEEKDAY_LABELS[day.getDay()]} {day.getDate()}
+              </h4>
+              {entry ? (
+                <div className="meal-plan-entry">
+                  <span>{entry.title}</span>
+                  <button
+                    type="button"
+                    className="meal-plan-clear"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      clear(key);
+                    }}
+                    aria-label={`Remove ${entry.title} from ${key}`}
+                  >
+                    ×
+                  </button>
                 </div>
-              );
-            })}
-          </div>
-        </>
+              ) : (
+                <p className="meal-plan-empty">No meal planned</p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {pickingDate && (
+        <MealPlanRecipePickerModal
+          date={pickingDate}
+          recipes={recipes}
+          onClose={() => setPickingDate(null)}
+          onSelect={(recipeId) => assign(pickingDate, recipeId)}
+        />
       )}
     </div>
   );
