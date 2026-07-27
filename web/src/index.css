@@ -578,6 +578,76 @@ body {
   opacity: 0.5;
 }
 
+.grocery-section {
+  margin-bottom: 1.25rem;
+}
+
+.grocery-section h3 {
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+.grocery-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  opacity: 0.6;
+}
+
+.grocery-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.grocery-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 1.05rem;
+  line-height: 1.4;
+}
+
+.grocery-item-auto {
+  opacity: 0.9;
+}
+
+.grocery-item-manual {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.grocery-item-manual input[type="checkbox"] {
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
+}
+
+.grocery-item-manual.done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.grocery-remove {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  opacity: 0.6;
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
 /*
  * Design rule: every action button lives at the top of its page/modal/section and is
  * locked there — never scrollable out of reach. The header is the page-level instance:
