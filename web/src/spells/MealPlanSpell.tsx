@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
-import type { RecipeSummary } from "./RecipesSpell";
+import type { RecipeFields, RecipeSummary } from "./RecipesSpell";
 import { MealPlanRecipePickerModal } from "./MealPlanRecipePickerModal";
+import { RecipeViewModal } from "./RecipeViewModal";
 import { RECIPE_DRAG_TYPE } from "./recipeDrag";
 
 interface MealPlanEntry {
@@ -19,6 +20,7 @@ export function MealPlanSpell() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [entries, setEntries] = useState<Record<string, MealPlanEntry>>({});
   const [pickingDate, setPickingDate] = useState<string | null>(null);
+  const [viewingRecipe, setViewingRecipe] = useState<(RecipeFields & { id: string }) | null>(null);
 
   useEffect(() => {
     fetch("/api/spells/recipes/recipes")
@@ -49,6 +51,11 @@ export function MealPlanSpell() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ recipeId }),
     });
+  }
+
+  async function openRecipe(id: string) {
+    const res = await fetch(`/api/spells/recipes/recipes/${id}`);
+    setViewingRecipe((await res.json()) as RecipeFields & { id: string });
   }
 
   async function clear(date: string) {
@@ -83,7 +90,7 @@ export function MealPlanSpell() {
       <p className="meal-plan-hint">
         {recipes.length === 0
           ? "Add recipes in the Recipes Spell to start planning meals."
-          : "Tap a day to choose a recipe, or drag a recipe from the Recipes Spell onto a day."}
+          : "Tap a day to choose a recipe, drag a recipe from the Recipes Spell onto a day, or tap an assigned recipe to view/prepare it."}
       </p>
 
       <div className="meal-plan-grid">
@@ -107,7 +114,16 @@ export function MealPlanSpell() {
               </h4>
               {entry ? (
                 <div className="meal-plan-entry">
-                  <span>{entry.title}</span>
+                  <button
+                    type="button"
+                    className="meal-plan-entry-title"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      openRecipe(entry.recipeId);
+                    }}
+                  >
+                    {entry.title}
+                  </button>
                   <button
                     type="button"
                     className="meal-plan-clear"
@@ -136,6 +152,8 @@ export function MealPlanSpell() {
           onSelect={(recipeId) => assign(pickingDate, recipeId)}
         />
       )}
+
+      {viewingRecipe && <RecipeViewModal recipe={viewingRecipe} onClose={() => setViewingRecipe(null)} />}
     </div>
   );
 }

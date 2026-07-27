@@ -62,6 +62,9 @@ Phases are sequential but each is scoped to ship something usable on its own.
   the two Spells' independently-mounted components, coordinated by a shared drag-type
   constant), or tap a day to open a searchable recipe-picker modal — no recipe list is
   duplicated inside the Meal Planner card itself
+- Tapping an already-assigned recipe (rather than the day cell around it) opens it in
+  the same read-only Recipe View modal the Recipes Spell uses, for viewing/preparing —
+  tapping elsewhere in the day cell still opens the picker to assign/reassign
 - Declares `requires: ["recipes"]` — reads the Recipes Spell's `recipes` table directly
   via a SQL join (`meal_plan_entries.recipe_id` → `recipes.id`); a deleted recipe's plan
   entries simply drop out of the view rather than dangling
@@ -69,24 +72,21 @@ Phases are sequential but each is scoped to ship something usable on its own.
   `GET /api/spells/recipes/recipes` endpoint — no duplicated recipe list on the backend
 
 ## Phase 5 — Grocery List Spell — **Done**
-- Weekly view (prev/today/next, same nav pattern as Calendar/Meal Planner) split into
-  two sections: an auto-aggregated list built from that week's meal plan, and a manual
-  add/remove/check-off list for everything else (paper towels, etc.)
-- Auto-aggregation reads `recipe_ingredients` lines straight off the active week's
-  `meal_plan_entries` (a cross-Spell SQL join, same pattern as the Meal Planner Spell's
-  own join against `recipes`) and merges duplicates: quantity + unit + item name are
-  parsed out of each free-text ingredient line with a small heuristic parser (handles
-  integers, decimals, and fractions/mixed numbers like "1 1/2"), then grouped by a
-  naively-singularized name so "2 onions" + "1 onion" sum to "3 onions" instead of
-  showing as separate lines. Lines that don't parse (e.g. "Salt to taste") just dedupe
-  by exact text rather than being dropped.
-- Manual items are their own persisted list (`grocery_items` table): add, check off,
-  remove — independent of the auto-aggregated section, which is read-only and simply
-  reflects whatever's currently in that week's meal plan
-- Declares `requires: ["meal-plan"]` — the transitive dependency on `recipes` (for
-  `recipe_ingredients`) is satisfied because Meal Planner itself requires Recipes, so
-  topological load order still guarantees that table exists first
-- Depends on: Meal Planner Spell
+- A flat, persisted list (`grocery_items` table): add an item by typing it, check items
+  off while shopping, remove them — the same interaction shape as the Chores Spell's
+  task boards
+- No backend link to the Meal Planner or Recipes Spells at all — nothing is added
+  automatically. Instead, the shared Recipe View modal (used by both the Recipes Spell
+  and the Meal Planner Spell) has a "Send to Grocery List" button that opens a
+  checklist of that recipe's ingredients (all checked by default, plus Check
+  all/Uncheck all) so the household picks exactly which lines to add before they land
+  in the list — deliberately not an automatic aggregation, so the list only ever holds
+  what someone chose to put there
+- No `requires` — Grocery List's backend is entirely self-contained; the recipe-side
+  integration is a plain frontend `fetch` into its existing `POST /items` endpoint from
+  `SendToGroceryListModal.tsx`, not a cross-Spell data dependency
+- Depends on: Meal Planner Spell (for the shared Recipe View entry point), Recipes Spell
+  (for the ingredients being sent)
 
 ## Phase 6 — Retail Integration — **Not started**
 - **Research spike first** (see Architecture doc, Risks): confirm current API access for

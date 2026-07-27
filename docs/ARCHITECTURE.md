@@ -137,9 +137,19 @@ beyond agreeing on a `dataTransfer` MIME key. The Recipes Spell's recipe cards
 (`RECIPE_DRAG_TYPE`) and is imported by both Spells. Follow the same shape for a future
 cross-Spell drag interaction rather than inventing a new mechanism: one small shared
 constant module, imported by whichever Spells need it — still no runtime coupling
-beyond that. (The Grocery List Spell, Phase 5, turned out not to need this — its link
-to the Meal Planner Spell is a read-only cross-Spell SQL join, not a UI drag/drop
-interaction.)
+beyond that.
+
+**Shared modal reused across Spells, not duplicated per Spell.** `RecipeViewModal` is
+owned by the Recipes Spell but is imported directly by the Meal Planner Spell too
+(tapping an assigned day's recipe opens the same component the Recipes Spell uses) —
+an ordinary cross-Spell TS import, same as the backend's cross-Spell SQL joins, just on
+the frontend. Its "Send to Grocery List" button is the Grocery List Spell's *only* link
+to recipe data: a plain `fetch` into Grocery List's existing `POST /items` endpoint from
+`SendToGroceryListModal.tsx`, not a manifest `requires` or a shared table — Grocery
+List's backend has no dependency on Recipes/Meal Planner at all. This was a deliberate
+choice over Phase 5's original design (an automatic cross-Spell SQL join aggregating
+every planned recipe's ingredients): the household picks which ingredients to send via a
+checklist rather than everything landing in the list automatically.
 
 ## Data storage
 
