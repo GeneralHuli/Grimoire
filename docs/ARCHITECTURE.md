@@ -109,6 +109,36 @@ values that belong in a k8s Secret (Phase 8) are `GOOGLE_CLIENT_ID`/`GOOGLE_CLIE
 — they identify the Grimoire app's own OAuth client registration, not any user's session,
 so they're static config rather than a per-account secret.
 
+## Frontend conventions
+
+These are house rules for any Spell's frontend, not just the ones that first needed
+them — apply them when building a new Spell's UI rather than re-deriving a one-off.
+
+**Action buttons live at the top, locked.** Every page, modal, and settings panel puts
+its action buttons (Save, Delete, Close, Import, etc.) in a non-scrolling row at the
+top, structurally outside the scrollable content rather than CSS-`sticky`'d over it:
+- The app header (`.grimoire-header`) is `position: sticky; top: 0` above the dashboard
+  grid.
+- Every standalone modal is a flex column: a `.modal-actions` row (title + buttons) as
+  a non-scrolling first child, and a single `.modal-body` that scrolls — see
+  `CalendarEventModal.tsx` or any `Recipe*Modal.tsx` for the pattern.
+- The Settings modal is the one exception that needs `position: sticky` rather than
+  structural separation: several panels (General, per-Spell) share one scrolling
+  `.settings-content` region, so each panel renders its own Save button as
+  `.settings-panel-actions`, pinned to the top of that shared scroll area.
+- Rationale: on the kiosk touchscreen (and vertically-cramped mobile viewports later,
+  Phase 9), a long list must never be able to scroll a Save/Close button out of reach.
+
+**Cross-Spell frontend drag-and-drop.** Spells rendered as separate dashboard cards can
+still be a native HTML5 drag source/drop target pair — no coordination layer needed
+beyond agreeing on a `dataTransfer` MIME key. The Recipes Spell's recipe cards
+(`draggable`, `onDragStart`) are the drag source for the Meal Planner Spell's day cells
+(`onDragOver`/`onDrop`); the shared key lives in `web/src/spells/recipeDrag.ts`
+(`RECIPE_DRAG_TYPE`) and is imported by both Spells. Follow the same shape for a future
+cross-Spell drag interaction (e.g. Grocery List, Phase 5) rather than inventing a new
+mechanism: one small shared constant module, imported by whichever Spells need it —
+still no runtime coupling beyond that.
+
 ## Data storage
 
 SQLite (via `better-sqlite3`), single file on a PVC in Phase 8. Fits the "lightweight
