@@ -40,22 +40,28 @@ Phases are sequential but each is scoped to ship something usable on its own.
 
 ## Phase 3 — Recipes Spell — **Done**
 - Manual recipe entry (ingredients, steps, meal type, prep-ease, star rating) — a card grid
-  with a create/edit/delete modal per recipe
+  with a create/edit/delete modal per recipe, plus a larger read-only view (bulleted,
+  independently-scrolling ingredients/steps columns) opened by tapping a recipe
 - URL import: parses `schema.org/Recipe` JSON-LD out of the page's `<script
   type="application/ld+json">` blocks (covers most recipe sites without an HTML-scraping
-  library), returning an editable draft rather than saving directly
+  library), returning an editable draft rather than saving directly; decodes HTML
+  entities and collapses whitespace so imported ingredient/step text is usable as-is
 - AI-generated recipes via the Claude API (`claude-opus-4-8`, structured JSON output),
   same draft-then-review flow as URL import — requires `ANTHROPIC_API_KEY` in
   `server/.env`; the rest of the Spell works without it
+- Search filter (title / meal type) in the recipe list toolbar; recipe cards are also
+  the drag source for the Meal Planner Spell (see Phase 4)
 - SQLite schema: `recipes` (title, meal type, ease, rating, source URL) plus
   `recipe_ingredients` / `recipe_steps` as ordered line tables per recipe
 
 ## Phase 4 — Meal Planner Spell — **Done**
 - Weekly meal plan grid (Sun–Sat, prev/today/next navigation like the Calendar Spell),
   one recipe per day, keyed by date so past/future weeks are independently editable
-- Two ways to assign a recipe to a day: native HTML5 drag-and-drop from the recipe chip
-  list, or tap a recipe then tap a day (touch-friendly fallback where drag gestures are
-  unreliable)
+- Two ways to assign a recipe to a day: drag a recipe card directly from the **Recipes
+  Spell's own dashboard card** and drop it on a day (native HTML5 drag-and-drop across
+  the two Spells' independently-mounted components, coordinated by a shared drag-type
+  constant), or tap a day to open a searchable recipe-picker modal — no recipe list is
+  duplicated inside the Meal Planner card itself
 - Declares `requires: ["recipes"]` — reads the Recipes Spell's `recipes` table directly
   via a SQL join (`meal_plan_entries.recipe_id` → `recipes.id`); a deleted recipe's plan
   entries simply drop out of the view rather than dangling

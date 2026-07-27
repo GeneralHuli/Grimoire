@@ -1,8 +1,8 @@
 # Google Account setup
 
 The **Google Account Spell** is a shared, standalone Spell that owns the family's single
-Google sign-in — every other Spell that needs a Google API (Calendar today, Tasks in
-Phase 2, more later) declares `"requires": ["google-account"]` in its manifest and reuses
+Google sign-in — every other Spell that needs a Google API (Calendar and Chores today,
+more later) declares `"requires": ["google-account"]` in its manifest and reuses
 this one connection instead of running its own OAuth flow. Sign in once, from the Google
 Account tab in Settings (or its dashboard card), and every dependent Spell picks it up.
 
@@ -29,7 +29,7 @@ Account tab in Settings (or its dashboard card), and every dependent Spell picks
    Google's consent screen requesting Calendar + Tasks scopes together, then back to the
    callback, which stores an encrypted refresh token in SQLite. After that,
    `/api/spells/google-account/status` should report `connected: true`, and Calendar
-   (and later Chores) start working immediately with no separate sign-in.
+   and Chores both start working immediately with no separate sign-in.
 
 If Google doesn't return a refresh token on connect (it only does so the *first* time an
 account grants access, or after access is revoked), remove Grimoire's access at

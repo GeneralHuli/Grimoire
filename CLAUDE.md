@@ -102,6 +102,15 @@ only, alongside a planned mobile-responsive web view; see the topology diagram i
 is built to serve kiosk, mobile, and desktop viewports from the same code rather than
 assuming Pi-class resource constraints on the server side.
 
+### Frontend conventions
+
+See `docs/ARCHITECTURE.md` → "Frontend conventions" before building a new Spell's UI —
+it covers two house rules that apply across Spells, not just the ones that introduced
+them: action buttons always live in a non-scrolling row at the top of their
+page/modal/panel (never CSS-scrollable out of reach), and cross-Spell drag-and-drop uses
+a small shared `dataTransfer` MIME-key module rather than any tighter coupling (see
+`web/src/spells/recipeDrag.ts` for the existing example).
+
 ## Maintaining documentation
 
 Docs here are load-bearing, not incidental cleanup — update them as part of finishing a
