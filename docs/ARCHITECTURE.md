@@ -135,9 +135,11 @@ beyond agreeing on a `dataTransfer` MIME key. The Recipes Spell's recipe cards
 (`draggable`, `onDragStart`) are the drag source for the Meal Planner Spell's day cells
 (`onDragOver`/`onDrop`); the shared key lives in `web/src/spells/recipeDrag.ts`
 (`RECIPE_DRAG_TYPE`) and is imported by both Spells. Follow the same shape for a future
-cross-Spell drag interaction (e.g. Grocery List, Phase 5) rather than inventing a new
-mechanism: one small shared constant module, imported by whichever Spells need it —
-still no runtime coupling beyond that.
+cross-Spell drag interaction rather than inventing a new mechanism: one small shared
+constant module, imported by whichever Spells need it — still no runtime coupling
+beyond that. (The Grocery List Spell, Phase 5, turned out not to need this — its link
+to the Meal Planner Spell is a read-only cross-Spell SQL join, not a UI drag/drop
+interaction.)
 
 ## Data storage
 

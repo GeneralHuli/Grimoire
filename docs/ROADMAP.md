@@ -68,9 +68,24 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - Frontend fetches the recipe list straight from the Recipes Spell's existing
   `GET /api/spells/recipes/recipes` endpoint — no duplicated recipe list on the backend
 
-## Phase 5 — Grocery List Spell — **Not started**
-- Auto-aggregate ingredients from the active meal plan
-- Manual add/remove, quantity merge (dedupe "2 onions" + "1 onion")
+## Phase 5 — Grocery List Spell — **Done**
+- Weekly view (prev/today/next, same nav pattern as Calendar/Meal Planner) split into
+  two sections: an auto-aggregated list built from that week's meal plan, and a manual
+  add/remove/check-off list for everything else (paper towels, etc.)
+- Auto-aggregation reads `recipe_ingredients` lines straight off the active week's
+  `meal_plan_entries` (a cross-Spell SQL join, same pattern as the Meal Planner Spell's
+  own join against `recipes`) and merges duplicates: quantity + unit + item name are
+  parsed out of each free-text ingredient line with a small heuristic parser (handles
+  integers, decimals, and fractions/mixed numbers like "1 1/2"), then grouped by a
+  naively-singularized name so "2 onions" + "1 onion" sum to "3 onions" instead of
+  showing as separate lines. Lines that don't parse (e.g. "Salt to taste") just dedupe
+  by exact text rather than being dropped.
+- Manual items are their own persisted list (`grocery_items` table): add, check off,
+  remove — independent of the auto-aggregated section, which is read-only and simply
+  reflects whatever's currently in that week's meal plan
+- Declares `requires: ["meal-plan"]` — the transitive dependency on `recipes` (for
+  `recipe_ingredients`) is satisfied because Meal Planner itself requires Recipes, so
+  topological load order still guarantees that table exists first
 - Depends on: Meal Planner Spell
 
 ## Phase 6 — Retail Integration — **Not started**

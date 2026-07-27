@@ -3,6 +3,7 @@ import { CalendarSpell } from "./CalendarSpell";
 import { ChoresSpell } from "./ChoresSpell";
 import { RecipesSpell } from "./RecipesSpell";
 import { MealPlanSpell } from "./MealPlanSpell";
+import { GroceryListSpell } from "./GroceryListSpell";
 
 /**
  * Maps a Spell's manifest `frontend` field to the component that renders it.
@@ -15,4 +16,5 @@ export const SPELL_COMPONENTS: Record<string, ComponentType> = {
   chores: ChoresSpell,
   recipes: RecipesSpell,
   "meal-plan": MealPlanSpell,
+  "grocery-list": GroceryListSpell,
 };

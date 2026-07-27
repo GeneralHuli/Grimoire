@@ -1,0 +1,11 @@
+{
+  "name": "grocery-list",
+  "displayName": "Grocery List",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "grocery-list",
+  "requires": ["meal-plan"],
+  "config": {
+    "position": "top-left"
+  }
+}
