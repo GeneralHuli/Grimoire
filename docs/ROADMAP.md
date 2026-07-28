@@ -92,7 +92,7 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - Depends on: Meal Planner Spell (for the shared Recipe View entry point), Recipes Spell
   (for the ingredients being sent)
 
-## Phase 6 — Retail Integration — **Spike done, implementation not started**
+## Phase 6 — Retail Integration — **Fred Meyer/Kroger shipped (pending live sign-in test); Albertsons descoped**
 - **Research spike (done 2026-07-28)** — see `docs/ARCHITECTURE.md` → "External
   integrations and open risks":
   - Fred Meyer/Kroger: **feasible.** Public API is free/self-serve, no partner approval
@@ -103,19 +103,20 @@ Phases are sequential but each is scoped to ship something usable on its own.
     only — no checkout/order-placement endpoint exists.
   - Albertsons: **descoped.** No general-purpose public API; only partner/ad-network
     integrations exist. Moved to Backlog — revisit only if that changes.
-- **Remaining implementation work** (not started):
-  - New `retail-kroger` Spell: `requires` nothing from google-account (separate OAuth
-    provider) but reads from the Grocery List Spell's `grocery_items` the same
-    frontend-fetch way the Grocery List Spell reads Recipes — no backend cross-Spell
-    dependency
-  - Kroger developer account + app registration is an external action tied to Avry's own
-    identity — needs Avry to create the account/app in the Kroger developer portal and
-    hand the resulting `KROGER_CLIENT_ID`/`KROGER_CLIENT_SECRET` into `server/.env`
-    before any OAuth code can be tested end-to-end
-  - Product search UI to match grocery-list item names to Kroger product results
-    (fuzzy/manual match, not automatic — mirrors the Grocery List Spell's existing
-    "nothing added automatically" philosophy), then "send matched items to Fred Meyer
-    cart" action using `cart.basic:write`
+- **Fred Meyer/Kroger implementation (done 2026-07-28)**: new `retail-kroger` Spell —
+  `requires` nothing (its own OAuth provider, separate from `google-account`); Grocery
+  List reads it the same plain-frontend-fetch way it already reads Recipes, no backend
+  cross-Spell dependency. Settings tab connects one shopper account and picks a store
+  location (needed for Product API pricing/availability); Grocery List gets a "Send to
+  Fred Meyer" action that opens a per-item product search so the household manually
+  matches grocery items to real products before adding them to that shopper's actual
+  cart — deliberately not automatic, same philosophy as the existing "Send to Grocery
+  List" flow. `GET /locations`, `GET /products`, and the OAuth `/auth/start` redirect
+  were all verified live against the real Kroger API (real Fred Meyer store data and
+  prices came back). **Not yet verified**: the actual `/auth/callback` consent hand-off
+  and a real `POST /cart/items` add, since both need a live browser sign-in with Avry's
+  own Fred Meyer account — something no automated test can do. Try connecting from the
+  Fred Meyer / Kroger settings tab and sending one item to confirm end-to-end.
 - Depends on: Grocery List Spell
 
 ## Phase 7 — Google Assistant / Home Integration — **Not started**
