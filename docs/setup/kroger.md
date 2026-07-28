@@ -8,11 +8,16 @@ Meyer" action.
 
 1. Go to [developer.kroger.com](https://developer.kroger.com/), create a free account
    (email verification required), then register an application.
-   - Redirect URI: `http://localhost:3000/api/spells/retail-kroger/auth/callback`
-     (match `KROGER_REDIRECT_URI` — update both if the server runs somewhere other than
-     `localhost:3000`, e.g. once it's behind the Proxmox cluster's ingress in Phase 8;
-     Kroger lets an app register more than one redirect URI, so add the production one
-     alongside this dev one rather than replacing it)
+   - Redirect URI: `http://localhost:5173/api/spells/retail-kroger/auth/callback` — note
+     the port is **5173** (the Vite dev server the browser is actually pointed at), not
+     3000 (the bare API server). Vite's dev proxy forwards `/api/*` — this callback
+     included — through to the server on :3000 automatically, so registering :3000
+     directly here leaves the browser stranded on a bare API origin with no frontend
+     route once Kroger redirects back, which looks like a stuck/spinning "won't connect"
+     failure rather than a clean error. Update both this and `KROGER_REDIRECT_URI` if the
+     server runs somewhere other than `localhost:5173`, e.g. once it's behind the Proxmox
+     cluster's ingress in Phase 8; Kroger lets an app register more than one redirect
+     URI, so add the production one alongside this dev one rather than replacing it.
    - No partner/business approval step exists for the Public API tier — registration is
      immediate.
 2. Copy the generated **Client ID** and **Client secret** into `server/.env`

@@ -8,6 +8,7 @@ interface KrogerLocation {
 
 export function RetailKrogerSettings() {
   const [connected, setConnected] = useState<boolean | null>(null);
+  const [statusError, setStatusError] = useState<string | null>(null);
   const [locationId, setLocationId] = useState<string>("");
   const [locationName, setLocationName] = useState<string>("");
   const [zipCode, setZipCode] = useState("");
@@ -21,13 +22,19 @@ export function RetailKrogerSettings() {
       .then((data: { locationId?: string; locationName?: string }) => {
         setLocationId(data.locationId ?? "");
         setLocationName(data.locationName ?? "");
+      })
+      .catch(() => {
+        /* Store selection just stays blank if this fails — refreshStatus below is the
+           one that must never hang, since it gates the whole panel's loading state. */
       });
   }, []);
 
   function refreshStatus() {
+    setStatusError(null);
     fetch("/api/spells/retail-kroger/status")
       .then((res) => res.json())
-      .then((data: { connected: boolean }) => setConnected(data.connected));
+      .then((data: { connected: boolean }) => setConnected(data.connected))
+      .catch(() => setStatusError("Couldn't reach the server to check connection status."));
   }
 
   async function disconnect() {
@@ -38,10 +45,13 @@ export function RetailKrogerSettings() {
   async function searchLocations() {
     if (!zipCode.trim()) return;
     setSearching(true);
-    const res = await fetch(`/api/spells/retail-kroger/locations?zipCode=${encodeURIComponent(zipCode.trim())}`);
-    const data: { locations: KrogerLocation[] } = await res.json();
-    setResults(data.locations);
-    setSearching(false);
+    try {
+      const res = await fetch(`/api/spells/retail-kroger/locations?zipCode=${encodeURIComponent(zipCode.trim())}`);
+      const data: { locations: KrogerLocation[] } = await res.json();
+      setResults(data.locations);
+    } finally {
+      setSearching(false);
+    }
   }
 
   async function chooseLocation(location: KrogerLocation) {
@@ -53,6 +63,17 @@ export function RetailKrogerSettings() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ locationId: location.locationId, locationName: `${location.name} — ${location.address}` }),
     });
+  }
+
+  if (statusError) {
+    return (
+      <div className="settings-panel">
+        <p>{statusError}</p>
+        <button className="settings-save" onClick={refreshStatus}>
+          Retry
+        </button>
+      </div>
+    );
   }
 
   if (connected === null) {
