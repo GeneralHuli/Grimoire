@@ -166,12 +166,13 @@ without affecting others, since each Spell owns its own tables.
 | Google Tasks | Done | Shares the same `google-account` Ritual, using the Tasks scope requested alongside Calendar's |
 | Recipe URL import | Done | Parses `schema.org/Recipe` JSON-LD out of the page's own `<script type="application/ld+json">` blocks — no HTML-scraping library needed |
 | AI recipe generation | Done | Single structured-output call to the Claude API (`claude-opus-4-8`, `output_config.format`); needs `ANTHROPIC_API_KEY` in `server/.env`, unlike the rest of the Recipes Spell |
-| Fred Meyer / Kroger | Likely feasible | Kroger family has a public developer API (product search + cart) |
-| Albertsons | **Research spike needed** | No known public API as of 2026; may need a partner application, or may end up manual-export only |
+| Fred Meyer / Kroger | **Spike complete (2026-07-28) — feasible** | Kroger's Public API (`developer.kroger.com`) is free, self-serve — no business/partner approval gate, just an email-verified account + app registration to get OAuth2 client credentials. `product.compact` (product search) and `cart.basic:write` (add items to a signed-in user's cart) are the relevant scopes; product/location lookups use `client_credentials`, cart writes need the `authorization_code` flow (Fred Meyer shopper signs in and consents, same pattern as the existing `google-account` Spell). Rate limits: ~10,000 calls/day products, ~1,600/day per location endpoint, ~5,000/day cart+identity. The Cart API only *adds items* — there's no checkout/order-placement endpoint, so "export to cart" is the ceiling, not "place the order." |
+| Albertsons | **Spike complete (2026-07-28) — no general public API; descoped to manual-export/backlog** | No general-purpose developer API exists. The only public Albertsons APIs found are partner/ad-network integrations (Albertsons Media Collective, for retail-media advertisers) and a meal-planning API limited to specific partners — neither is a fit for an unaffiliated app adding grocery items to a cart. Revisit only if Albertsons opens a public cart API later; until then, Phase 6 implementation should cover Kroger/Fred Meyer only. |
 | Google Assistant / Home | **Research spike needed** | Conversational Actions (the old voice-command platform) shut down in 2023. Current path is likely the Local Home SDK (device control, not general voice Q&A) or a self-hosted bridge (e.g. Home Assistant's conversation integration). Scope this properly before committing Phase 7 engineering time. |
 
 Both spikes are called out explicitly in the roadmap (Phase 6 and Phase 7) so they happen
-before implementation work, not mid-phase.
+before implementation work, not mid-phase. The Phase 6 spike (Kroger/Fred Meyer feasible,
+Albertsons descoped) is done — see `docs/ROADMAP.md` Phase 6 for the resulting scope.
 
 ## Deployment environments
 

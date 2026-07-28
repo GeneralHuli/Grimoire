@@ -92,12 +92,30 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - Depends on: Meal Planner Spell (for the shared Recipe View entry point), Recipes Spell
   (for the ingredients being sent)
 
-## Phase 6 — Retail Integration — **Not started**
-- **Research spike first** (see Architecture doc, Risks): confirm current API access for
-  Fred Meyer (Kroger family — has a public developer API) and Albertsons (no known public
-  API as of 2026; may require partner application or may be a stretch/manual-export goal)
-- Kroger/Fred Meyer: OAuth + cart API, export grocery list → cart
-- Albertsons: scoped down or descoped based on spike findings
+## Phase 6 — Retail Integration — **Spike done, implementation not started**
+- **Research spike (done 2026-07-28)** — see `docs/ARCHITECTURE.md` → "External
+  integrations and open risks":
+  - Fred Meyer/Kroger: **feasible.** Public API is free/self-serve, no partner approval
+    needed — just an email-verified `developer.kroger.com` account + app registration.
+    `authorization_code` grant + `cart.basic:write` scope for adding items to a signed-in
+    shopper's cart (same shape as the existing `google-account` Spell's consent flow);
+    `client_credentials` + `product.compact` for product search. Cart API adds items
+    only — no checkout/order-placement endpoint exists.
+  - Albertsons: **descoped.** No general-purpose public API; only partner/ad-network
+    integrations exist. Moved to Backlog — revisit only if that changes.
+- **Remaining implementation work** (not started):
+  - New `retail-kroger` Spell: `requires` nothing from google-account (separate OAuth
+    provider) but reads from the Grocery List Spell's `grocery_items` the same
+    frontend-fetch way the Grocery List Spell reads Recipes — no backend cross-Spell
+    dependency
+  - Kroger developer account + app registration is an external action tied to Avry's own
+    identity — needs Avry to create the account/app in the Kroger developer portal and
+    hand the resulting `KROGER_CLIENT_ID`/`KROGER_CLIENT_SECRET` into `server/.env`
+    before any OAuth code can be tested end-to-end
+  - Product search UI to match grocery-list item names to Kroger product results
+    (fuzzy/manual match, not automatic — mirrors the Grocery List Spell's existing
+    "nothing added automatically" philosophy), then "send matched items to Fred Meyer
+    cart" action using `cart.basic:write`
 - Depends on: Grocery List Spell
 
 ## Phase 7 — Google Assistant / Home Integration — **Not started**
