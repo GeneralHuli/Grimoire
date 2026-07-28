@@ -10,6 +10,24 @@ MagicMirror loads modules. See `README.md` for the pitch, `docs/ARCHITECTURE.md`
 system design and rationale, and `docs/ROADMAP.md` for the phased build plan and what's
 actually done vs. not yet started.
 
+## Git workflow
+
+`dev` is the integration branch for all day-to-day work, and is the GitHub repo's
+default branch — `main` is kept as a stable snapshot, updated by merging `dev` into it
+periodically rather than on every change. This split exists so testing never has to
+wait on a `main` update: the Docker dev stack bind-mounts this checkout's working
+directory directly, so **this checkout should stay checked out on `dev`** — restarting
+`server`/`web` (see Commands below) always reflects whatever's latest on `dev`.
+
+Feature work still happens in isolated git worktrees (one per task, branched off
+`dev`), same as before — it's merging and PR targets that changed, not the isolation
+itself. When a worktree's change is ready: merge it into local `dev` in this checkout
+(`git merge <branch>`), push `dev`, then restart the affected container(s) so the
+running dev stack picks it up immediately. Open PRs with `gh pr create --base dev`
+(the repo's default branch is `dev`, so a plain `gh pr create` already targets it).
+Only merge `dev` into `main` deliberately, when `dev` represents a good stable point —
+don't do this automatically as part of routine feature work.
+
 ## Commands
 
 Development happens through Docker Compose — the local shell's Node version may be too
