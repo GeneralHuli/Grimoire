@@ -31,7 +31,7 @@ export function MealPlanRecipePickerModal({ date, recipes, onClose, onSelect }: 
         className="recipe-editor-dialog"
         role="dialog"
         aria-modal="true"
-        aria-label={`Choose a recipe for ${dateLabel}`}
+        aria-label={`Add a recipe to ${dateLabel}`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="modal-actions">

@@ -5,6 +5,7 @@ import { RecipeViewModal } from "./RecipeViewModal";
 import { RECIPE_DRAG_TYPE } from "./recipeDrag";
 
 interface MealPlanEntry {
+  id: string;
   date: string;
   recipeId: string;
   title: string;
@@ -18,7 +19,7 @@ const WEEKDAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 export function MealPlanSpell() {
   const [recipes, setRecipes] = useState<RecipeSummary[]>([]);
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
-  const [entries, setEntries] = useState<Record<string, MealPlanEntry>>({});
+  const [entries, setEntries] = useState<Record<string, MealPlanEntry[]>>({});
   const [pickingDate, setPickingDate] = useState<string | null>(null);
   const [viewingRecipe, setViewingRecipe] = useState<(RecipeFields & { id: string }) | null>(null);
 
@@ -32,8 +33,10 @@ export function MealPlanSpell() {
     fetch(`/api/spells/meal-plan/week?date=${formatDateParam(weekStart)}`)
       .then((res) => res.json())
       .then((data: { entries: MealPlanEntry[] }) => {
-        const byDate: Record<string, MealPlanEntry> = {};
-        for (const entry of data.entries) byDate[entry.date] = entry;
+        const byDate: Record<string, MealPlanEntry[]> = {};
+        for (const entry of data.entries) {
+          (byDate[entry.date] ??= []).push(entry);
+        }
         setEntries(byDate);
       });
   }, [weekStart]);
@@ -41,16 +44,20 @@ export function MealPlanSpell() {
   async function assign(date: string, recipeId: string) {
     const recipe = recipes.find((r) => r.id === recipeId);
     if (!recipe) return;
+    setPickingDate(null);
+    const res = await fetch("/api/spells/meal-plan/entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ date, recipeId }),
+    });
+    const { id } = await res.json();
     setEntries((prev) => ({
       ...prev,
-      [date]: { date, recipeId, title: recipe.title, mealType: recipe.mealType, ease: recipe.ease, rating: recipe.rating },
+      [date]: [
+        ...(prev[date] ?? []),
+        { id, date, recipeId, title: recipe.title, mealType: recipe.mealType, ease: recipe.ease, rating: recipe.rating },
+      ],
     }));
-    setPickingDate(null);
-    await fetch(`/api/spells/meal-plan/entries/${date}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ recipeId }),
-    });
   }
 
   async function openRecipe(id: string) {
@@ -58,13 +65,12 @@ export function MealPlanSpell() {
     setViewingRecipe((await res.json()) as RecipeFields & { id: string });
   }
 
-  async function clear(date: string) {
-    setEntries((prev) => {
-      const next = { ...prev };
-      delete next[date];
-      return next;
-    });
-    await fetch(`/api/spells/meal-plan/entries/${date}`, { method: "DELETE" });
+  async function clear(entryId: string, date: string) {
+    setEntries((prev) => ({
+      ...prev,
+      [date]: (prev[date] ?? []).filter((e) => e.id !== entryId),
+    }));
+    await fetch(`/api/spells/meal-plan/entries/${entryId}`, { method: "DELETE" });
   }
 
   const days = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
@@ -90,13 +96,13 @@ export function MealPlanSpell() {
       <p className="meal-plan-hint">
         {recipes.length === 0
           ? "Add recipes in the Recipes Spell to start planning meals."
-          : "Tap a day to choose a recipe, drag a recipe from the Recipes Spell onto a day, or tap an assigned recipe to view/prepare it."}
+          : "Tap a day to add a recipe (you can add more than one), drag a recipe from the Recipes Spell onto a day, or tap an assigned recipe to view/prepare it."}
       </p>
 
       <div className="meal-plan-grid">
         {days.map((day) => {
           const key = formatDateParam(day);
-          const entry = entries[key];
+          const dayEntries = entries[key] ?? [];
           return (
             <div
               key={key}
@@ -112,8 +118,9 @@ export function MealPlanSpell() {
               <h4>
                 {WEEKDAY_LABELS[day.getDay()]} {day.getDate()}
               </h4>
-              {entry ? (
-                <div className="meal-plan-entry">
+              {dayEntries.length === 0 && <p className="meal-plan-empty">No meal planned</p>}
+              {dayEntries.map((entry) => (
+                <div key={entry.id} className="meal-plan-entry">
                   <button
                     type="button"
                     className="meal-plan-entry-title"
@@ -129,16 +136,14 @@ export function MealPlanSpell() {
                     className="meal-plan-clear"
                     onClick={(e) => {
                       e.stopPropagation();
-                      clear(key);
+                      clear(entry.id, key);
                     }}
                     aria-label={`Remove ${entry.title} from ${key}`}
                   >
                     ×
                   </button>
                 </div>
-              ) : (
-                <p className="meal-plan-empty">No meal planned</p>
-              )}
+              ))}
             </div>
           );
         })}

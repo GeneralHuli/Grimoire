@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import type { SpellModule } from "../../src/types.js";
-import { getWeek, setEntry, clearEntry } from "./store.js";
+import { getWeek, addEntry, removeEntry } from "./store.js";
 
 function startOfWeek(d: Date): Date {
   const s = new Date(d.getFullYear(), d.getMonth(), d.getDate());
@@ -33,18 +33,18 @@ const mod: SpellModule = {
       res.json({ entries });
     });
 
-    app.put("/api/spells/meal-plan/entries/:date", (req, res) => {
-      const { recipeId } = req.body as { recipeId?: string };
-      if (!recipeId) {
-        res.status(400).json({ error: "recipeId is required" });
+    app.post("/api/spells/meal-plan/entries", (req, res) => {
+      const { date, recipeId } = req.body as { date?: string; recipeId?: string };
+      if (!date || !recipeId) {
+        res.status(400).json({ error: "date and recipeId are required" });
         return;
       }
-      setEntry(req.params.date, recipeId);
-      res.status(204).end();
+      const id = addEntry(date, recipeId);
+      res.status(201).json({ id });
     });
 
-    app.delete("/api/spells/meal-plan/entries/:date", (req, res) => {
-      clearEntry(req.params.date);
+    app.delete("/api/spells/meal-plan/entries/:id", (req, res) => {
+      removeEntry(req.params.id);
       res.status(204).end();
     });
   },

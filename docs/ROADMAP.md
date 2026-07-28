@@ -56,15 +56,19 @@ Phases are sequential but each is scoped to ship something usable on its own.
 
 ## Phase 4 — Meal Planner Spell — **Done**
 - Weekly meal plan grid (Sun–Sat, prev/today/next navigation like the Calendar Spell),
-  one recipe per day, keyed by date so past/future weeks are independently editable
-- Two ways to assign a recipe to a day: drag a recipe card directly from the **Recipes
+  any number of recipes per day (each assignment is its own row keyed by an id, not by
+  date, so a day isn't limited to one recipe), keyed by date so past/future weeks are
+  independently editable
+- Two ways to add a recipe to a day: drag a recipe card directly from the **Recipes
   Spell's own dashboard card** and drop it on a day (native HTML5 drag-and-drop across
   the two Spells' independently-mounted components, coordinated by a shared drag-type
   constant), or tap a day to open a searchable recipe-picker modal — no recipe list is
-  duplicated inside the Meal Planner card itself
+  duplicated inside the Meal Planner card itself. Either action adds an entry alongside
+  whatever's already assigned to that day rather than replacing it; each entry has its
+  own remove (×) button
 - Tapping an already-assigned recipe (rather than the day cell around it) opens it in
   the same read-only Recipe View modal the Recipes Spell uses, for viewing/preparing —
-  tapping elsewhere in the day cell still opens the picker to assign/reassign
+  tapping elsewhere in the day cell still opens the picker to add another
 - Declares `requires: ["recipes"]` — reads the Recipes Spell's `recipes` table directly
   via a SQL join (`meal_plan_entries.recipe_id` → `recipes.id`); a deleted recipe's plan
   entries simply drop out of the view rather than dangling
