@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { RecipeFields, RecipeSummary } from "./RecipesSpell";
+import type { RecipeFields, RecipeIngredient, RecipeSummary } from "./RecipesSpell";
 import { MealPlanRecipePickerModal } from "./MealPlanRecipePickerModal";
 import { RecipeViewModal } from "./RecipeViewModal";
 import { RECIPE_DRAG_TYPE } from "./recipeDrag";
@@ -21,7 +21,9 @@ export function MealPlanSpell() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [entries, setEntries] = useState<Record<string, MealPlanEntry[]>>({});
   const [pickingDate, setPickingDate] = useState<string | null>(null);
-  const [viewingRecipe, setViewingRecipe] = useState<(RecipeFields & { id: string }) | null>(null);
+  const [viewingRecipe, setViewingRecipe] = useState<
+    (RecipeFields & { id: string; ingredientDetails: RecipeIngredient[] }) | null
+  >(null);
 
   useEffect(() => {
     fetch("/api/spells/recipes/recipes")
@@ -62,7 +64,7 @@ export function MealPlanSpell() {
 
   async function openRecipe(id: string) {
     const res = await fetch(`/api/spells/recipes/recipes/${id}`);
-    setViewingRecipe((await res.json()) as RecipeFields & { id: string });
+    setViewingRecipe((await res.json()) as RecipeFields & { id: string; ingredientDetails: RecipeIngredient[] });
   }
 
   async function clear(entryId: string, date: string) {
