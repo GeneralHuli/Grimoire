@@ -117,6 +117,15 @@ Phases are sequential but each is scoped to ship something usable on its own.
   and a real `POST /cart/items` add, since both need a live browser sign-in with Avry's
   own Fred Meyer account — something no automated test can do. Try connecting from the
   Fred Meyer / Kroger settings tab and sending one item to confirm end-to-end.
+- **Ingredient quantity/name split (done 2026-07-28)**: product search was matching
+  nothing because it searched on the full grocery line ("2 cups flour") instead of the
+  ingredient name. `recipe_ingredients` and `grocery_items` now store `quantity` and
+  `name` as separate columns (`server/src/ingredientText.ts` has the heuristic
+  quantity/name splitter, shared by both Spells' stores; existing rows were migrated in
+  place). The grocery list and Send-to-Fred-Meyer views still display the combined
+  "quantity name" line, but search against just the name — and the Fred Meyer modal now
+  has an editable per-item search-term field (persisted to `grocery_items.search_term`)
+  for correcting a bad auto-split or a name Kroger's search doesn't recognize.
 - Depends on: Grocery List Spell
 
 ## Phase 7 — Google Assistant / Home Integration — **Not started**
