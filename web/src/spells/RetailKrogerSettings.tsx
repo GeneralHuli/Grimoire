@@ -94,7 +94,14 @@ export function RetailKrogerSettings() {
       ) : (
         <>
           <p>Status: Not connected</p>
-          <a className="calendar-connect" href="/api/spells/retail-kroger/auth/start">
+          {/*
+            Kroger's hosted sign-in (MSAL/Azure AD B2C under the hood) behaves
+            differently when it sees a Referer pointing back at our app — it hangs
+            instead of rendering the sign-in form, but works fine when the same URL is
+            opened with no referrer (e.g. typed fresh in a new tab). rel="noreferrer"
+            suppresses the Referer header for this navigation and its redirect chain.
+          */}
+          <a className="calendar-connect" href="/api/spells/retail-kroger/auth/start" rel="noreferrer">
             Connect Fred Meyer Account
           </a>
         </>
