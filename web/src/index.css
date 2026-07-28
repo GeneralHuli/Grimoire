@@ -666,6 +666,20 @@ body {
   cursor: pointer;
 }
 
+.kroger-match-item {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.4rem;
+}
+
+.kroger-match-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  gap: 0.5rem;
+}
+
 /*
  * Design rule: every action button lives at the top of its page/modal/section and is
  * locked there — never scrollable out of reach. The header is the page-level instance:

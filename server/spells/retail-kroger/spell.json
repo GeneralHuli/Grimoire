@@ -1,0 +1,11 @@
+{
+  "name": "retail-kroger",
+  "displayName": "Fred Meyer / Kroger",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "kind": "ritual",
+  "config": {
+    "locationId": "",
+    "locationName": ""
+  }
+}

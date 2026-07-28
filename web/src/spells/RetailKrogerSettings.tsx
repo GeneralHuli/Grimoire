@@ -1,0 +1,110 @@
+import { useEffect, useState } from "react";
+
+interface KrogerLocation {
+  locationId: string;
+  name: string;
+  address: string;
+}
+
+export function RetailKrogerSettings() {
+  const [connected, setConnected] = useState<boolean | null>(null);
+  const [locationId, setLocationId] = useState<string>("");
+  const [locationName, setLocationName] = useState<string>("");
+  const [zipCode, setZipCode] = useState("");
+  const [results, setResults] = useState<KrogerLocation[] | null>(null);
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    refreshStatus();
+    fetch("/api/settings/retail-kroger")
+      .then((res) => res.json())
+      .then((data: { locationId?: string; locationName?: string }) => {
+        setLocationId(data.locationId ?? "");
+        setLocationName(data.locationName ?? "");
+      });
+  }, []);
+
+  function refreshStatus() {
+    fetch("/api/spells/retail-kroger/status")
+      .then((res) => res.json())
+      .then((data: { connected: boolean }) => setConnected(data.connected));
+  }
+
+  async function disconnect() {
+    await fetch("/api/spells/retail-kroger/auth/disconnect", { method: "POST" });
+    refreshStatus();
+  }
+
+  async function searchLocations() {
+    if (!zipCode.trim()) return;
+    setSearching(true);
+    const res = await fetch(`/api/spells/retail-kroger/locations?zipCode=${encodeURIComponent(zipCode.trim())}`);
+    const data: { locations: KrogerLocation[] } = await res.json();
+    setResults(data.locations);
+    setSearching(false);
+  }
+
+  async function chooseLocation(location: KrogerLocation) {
+    setLocationId(location.locationId);
+    setLocationName(`${location.name} — ${location.address}`);
+    setResults(null);
+    await fetch("/api/settings/retail-kroger", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ locationId: location.locationId, locationName: `${location.name} — ${location.address}` }),
+    });
+  }
+
+  if (connected === null) {
+    return <p>Checking…</p>;
+  }
+
+  return (
+    <div className="settings-panel">
+      <p>Used by the Grocery List Spell's "Send to Fred Meyer" action.</p>
+
+      {connected ? (
+        <>
+          <p>Status: Connected</p>
+          <button className="settings-save" onClick={disconnect}>
+            Disconnect Fred Meyer Account
+          </button>
+        </>
+      ) : (
+        <>
+          <p>Status: Not connected</p>
+          <a className="calendar-connect" href="/api/spells/retail-kroger/auth/start">
+            Connect Fred Meyer Account
+          </a>
+        </>
+      )}
+
+      <h3>Store</h3>
+      {locationId ? <p>Current store: {locationName || locationId}</p> : <p>No store picked yet.</p>}
+      <div className="chores-add">
+        <input
+          placeholder="Zip code"
+          value={zipCode}
+          onChange={(e) => setZipCode(e.target.value)}
+          aria-label="Zip code"
+        />
+        <button type="button" onClick={searchLocations} disabled={searching}>
+          {searching ? "Searching…" : "Find stores"}
+        </button>
+      </div>
+      {results !== null && results.length === 0 && <p>No Fred Meyer stores found near that zip code.</p>}
+      {results !== null && results.length > 0 && (
+        <ul className="recipes-list">
+          {results.map((location) => (
+            <li key={location.locationId}>
+              <button type="button" className="recipes-item" onClick={() => chooseLocation(location)}>
+                <span className="recipes-item-title">{location.name}</span>
+                <span className="recipes-item-meta">{location.address}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}

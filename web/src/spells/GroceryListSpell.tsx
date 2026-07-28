@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { SendToKrogerCartModal } from "./SendToKrogerCartModal";
 
 interface GroceryItem {
   id: string;
@@ -9,9 +10,14 @@ interface GroceryItem {
 export function GroceryListSpell() {
   const [items, setItems] = useState<GroceryItem[] | null>(null);
   const [newItemText, setNewItemText] = useState("");
+  const [krogerConnected, setKrogerConnected] = useState(false);
+  const [showKrogerModal, setShowKrogerModal] = useState(false);
 
   useEffect(() => {
     refresh();
+    fetch("/api/spells/retail-kroger/status")
+      .then((res) => res.json())
+      .then((data: { connected: boolean }) => setKrogerConnected(data.connected));
   }, []);
 
   function refresh() {
@@ -67,6 +73,14 @@ export function GroceryListSpell() {
         <button type="submit">Add</button>
       </form>
 
+      {krogerConnected && items !== null && items.some((i) => !i.checked) && (
+        <div className="send-grocery-toolbar">
+          <button type="button" onClick={() => setShowKrogerModal(true)}>
+            Send to Fred Meyer
+          </button>
+        </div>
+      )}
+
       {items === null && <p>Loading…</p>}
       {items !== null && items.length === 0 && (
         <p className="grocery-empty">
@@ -92,6 +106,10 @@ export function GroceryListSpell() {
             </li>
           ))}
         </ul>
+      )}
+
+      {showKrogerModal && items !== null && (
+        <SendToKrogerCartModal items={items.filter((i) => !i.checked)} onClose={() => setShowKrogerModal(false)} />
       )}
     </div>
   );
