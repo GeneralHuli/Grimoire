@@ -5,6 +5,11 @@ import { RecipeGenerateModal } from "./RecipeGenerateModal";
 import { RecipeViewModal } from "./RecipeViewModal";
 import { RECIPE_DRAG_TYPE } from "./recipeDrag";
 
+export interface RecipeIngredient {
+  quantity: string;
+  name: string;
+}
+
 export interface RecipeFields {
   title: string;
   mealType: string;
@@ -39,7 +44,9 @@ const EMPTY_FIELDS: RecipeFields = {
 
 export function RecipesSpell() {
   const [recipes, setRecipes] = useState<RecipeSummary[] | null>(null);
-  const [viewing, setViewing] = useState<(RecipeFields & { id: string }) | null>(null);
+  const [viewing, setViewing] = useState<(RecipeFields & { id: string; ingredientDetails: RecipeIngredient[] }) | null>(
+    null
+  );
   const [editing, setEditing] = useState<EditingState | null>(null);
   const [importing, setImporting] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -66,7 +73,7 @@ export function RecipesSpell() {
 
   async function openRecipe(id: string) {
     const res = await fetch(`/api/spells/recipes/recipes/${id}`);
-    setViewing((await res.json()) as RecipeFields & { id: string });
+    setViewing((await res.json()) as RecipeFields & { id: string; ingredientDetails: RecipeIngredient[] });
   }
 
   function editViewing() {

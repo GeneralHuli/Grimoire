@@ -680,6 +680,16 @@ body {
   gap: 0.5rem;
 }
 
+.kroger-match-row > span {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.kroger-search-term {
+  flex: 0 1 160px;
+  min-width: 80px;
+}
+
 /*
  * Design rule: every action button lives at the top of its page/modal/section and is
  * locked there — never scrollable out of reach. The header is the page-level instance:

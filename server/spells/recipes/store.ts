@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { db } from "../../src/db.js";
+import { splitIngredientText, joinIngredientText } from "../../src/ingredientText.js";
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS recipes (
@@ -12,14 +13,50 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )
 `);
-db.exec(`
-  CREATE TABLE IF NOT EXISTS recipe_ingredients (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    recipe_id TEXT NOT NULL,
-    position INTEGER NOT NULL,
-    text TEXT NOT NULL
-  )
-`);
+
+const existingIngredientColumns = db.prepare("PRAGMA table_info(recipe_ingredients)").all() as { name: string }[];
+const hasNameColumn = existingIngredientColumns.some((c) => c.name === "name");
+
+if (existingIngredientColumns.length > 0 && !hasNameColumn) {
+  // Migrate from a single free-text ingredient line ("2 cups flour") to a
+  // separate quantity/name so grocery-list search can target just the name.
+  const migrate = db.transaction(() => {
+    const rows = db.prepare("SELECT recipe_id, position, text FROM recipe_ingredients ORDER BY recipe_id, position").all() as {
+      recipe_id: string;
+      position: number;
+      text: string;
+    }[];
+    db.exec("DROP TABLE recipe_ingredients");
+    db.exec(`
+      CREATE TABLE recipe_ingredients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        recipe_id TEXT NOT NULL,
+        position INTEGER NOT NULL,
+        quantity TEXT NOT NULL DEFAULT '',
+        name TEXT NOT NULL
+      )
+    `);
+    const insert = db.prepare(
+      "INSERT INTO recipe_ingredients (recipe_id, position, quantity, name) VALUES (?, ?, ?, ?)"
+    );
+    for (const row of rows) {
+      const { quantity, name } = splitIngredientText(row.text);
+      insert.run(row.recipe_id, row.position, quantity, name);
+    }
+  });
+  migrate();
+} else {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS recipe_ingredients (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      recipe_id TEXT NOT NULL,
+      position INTEGER NOT NULL,
+      quantity TEXT NOT NULL DEFAULT '',
+      name TEXT NOT NULL
+    )
+  `);
+}
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS recipe_steps (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -28,6 +65,11 @@ db.exec(`
     text TEXT NOT NULL
   )
 `);
+
+export interface RecipeIngredient {
+  quantity: string;
+  name: string;
+}
 
 export interface RecipeFields {
   title: string;
@@ -49,6 +91,7 @@ export interface RecipeSummary {
 
 export interface RecipeDetail extends RecipeFields {
   id: string;
+  ingredientDetails: RecipeIngredient[];
 }
 
 export function listRecipes(): RecipeSummary[] {
@@ -64,24 +107,36 @@ export function getRecipe(id: string): RecipeDetail | null {
     )
     .get(id) as (RecipeSummary & { sourceUrl: string | null }) | undefined;
   if (!row) return null;
-  const ingredients = db
-    .prepare("SELECT text FROM recipe_ingredients WHERE recipe_id = ? ORDER BY position")
-    .all(id) as { text: string }[];
+  const ingredientRows = db
+    .prepare("SELECT quantity, name FROM recipe_ingredients WHERE recipe_id = ? ORDER BY position")
+    .all(id) as RecipeIngredient[];
   const steps = db
     .prepare("SELECT text FROM recipe_steps WHERE recipe_id = ? ORDER BY position")
     .all(id) as { text: string }[];
   return {
     ...row,
     sourceUrl: row.sourceUrl ?? undefined,
-    ingredients: ingredients.map((r) => r.text),
+    ingredients: ingredientRows.map((r) => joinIngredientText(r.quantity, r.name)),
+    ingredientDetails: ingredientRows,
     steps: steps.map((r) => r.text),
   };
 }
 
-function replaceLines(table: "recipe_ingredients" | "recipe_steps", recipeId: string, lines: string[]): void {
-  db.prepare(`DELETE FROM ${table} WHERE recipe_id = ?`).run(recipeId);
-  const insert = db.prepare(`INSERT INTO ${table} (recipe_id, position, text) VALUES (?, ?, ?)`);
+function replaceSteps(recipeId: string, lines: string[]): void {
+  db.prepare("DELETE FROM recipe_steps WHERE recipe_id = ?").run(recipeId);
+  const insert = db.prepare("INSERT INTO recipe_steps (recipe_id, position, text) VALUES (?, ?, ?)");
   lines.forEach((text, i) => insert.run(recipeId, i, text));
+}
+
+function replaceIngredients(recipeId: string, lines: string[]): void {
+  db.prepare("DELETE FROM recipe_ingredients WHERE recipe_id = ?").run(recipeId);
+  const insert = db.prepare(
+    "INSERT INTO recipe_ingredients (recipe_id, position, quantity, name) VALUES (?, ?, ?, ?)"
+  );
+  lines.forEach((line, i) => {
+    const { quantity, name } = splitIngredientText(line);
+    insert.run(recipeId, i, quantity, name);
+  });
 }
 
 export function createRecipe(fields: RecipeFields): string {
@@ -90,8 +145,8 @@ export function createRecipe(fields: RecipeFields): string {
     db.prepare(
       "INSERT INTO recipes (id, title, meal_type, ease, rating, source_url) VALUES (?, ?, ?, ?, ?, ?)"
     ).run(id, fields.title, fields.mealType, fields.ease, fields.rating, fields.sourceUrl ?? null);
-    replaceLines("recipe_ingredients", id, fields.ingredients);
-    replaceLines("recipe_steps", id, fields.steps);
+    replaceIngredients(id, fields.ingredients);
+    replaceSteps(id, fields.steps);
   });
   tx();
   return id;
@@ -102,8 +157,8 @@ export function updateRecipe(id: string, fields: RecipeFields): void {
     db.prepare(
       "UPDATE recipes SET title = ?, meal_type = ?, ease = ?, rating = ?, source_url = ? WHERE id = ?"
     ).run(fields.title, fields.mealType, fields.ease, fields.rating, fields.sourceUrl ?? null, id);
-    replaceLines("recipe_ingredients", id, fields.ingredients);
-    replaceLines("recipe_steps", id, fields.steps);
+    replaceIngredients(id, fields.ingredients);
+    replaceSteps(id, fields.steps);
   });
   tx();
 }

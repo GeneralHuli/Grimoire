@@ -3,8 +3,14 @@ import { SendToKrogerCartModal } from "./SendToKrogerCartModal";
 
 interface GroceryItem {
   id: string;
-  text: string;
+  quantity: string;
+  name: string;
+  searchTerm: string;
   checked: boolean;
+}
+
+function displayLine(item: GroceryItem): string {
+  return item.quantity ? `${item.quantity} ${item.name}`.trim() : item.name;
 }
 
 export function GroceryListSpell() {
@@ -93,13 +99,13 @@ export function GroceryListSpell() {
             <li key={item.id} className="grocery-item">
               <label className={`grocery-item-manual${item.checked ? " done" : ""}`}>
                 <input type="checkbox" checked={item.checked} onChange={() => toggleItem(item)} />
-                {item.text}
+                {displayLine(item)}
               </label>
               <button
                 type="button"
                 className="grocery-remove"
                 onClick={() => removeItem(item.id)}
-                aria-label={`Remove ${item.text}`}
+                aria-label={`Remove ${displayLine(item)}`}
               >
                 ×
               </button>

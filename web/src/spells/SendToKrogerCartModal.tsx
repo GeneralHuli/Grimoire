@@ -2,8 +2,14 @@ import { useState } from "react";
 
 interface GroceryItem {
   id: string;
-  text: string;
+  quantity: string;
+  name: string;
+  searchTerm: string;
   checked: boolean;
+}
+
+function displayLine(item: GroceryItem): string {
+  return item.quantity ? `${item.quantity} ${item.name}`.trim() : item.name;
 }
 
 interface KrogerProduct {
@@ -30,17 +36,39 @@ export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalP
   const [resultsByItem, setResultsByItem] = useState<Record<string, KrogerProduct[]>>({});
   const [searchingItem, setSearchingItem] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, KrogerProduct>>({});
+  const [searchTerms, setSearchTerms] = useState<Record<string, string>>(() =>
+    Object.fromEntries(items.map((item) => [item.id, item.searchTerm]))
+  );
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
 
   const selectedCount = Object.keys(selected).length;
 
+  function termFor(item: GroceryItem): string {
+    return searchTerms[item.id] ?? item.searchTerm;
+  }
+
+  function editTerm(itemId: string, value: string) {
+    setSearchTerms((prev) => ({ ...prev, [itemId]: value }));
+  }
+
+  function persistTerm(item: GroceryItem) {
+    const term = termFor(item).trim();
+    if (!term || term === item.searchTerm) return;
+    fetch(`/api/spells/grocery-list/items/${item.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ searchTerm: term }),
+    });
+  }
+
   async function search(item: GroceryItem) {
+    const term = termFor(item).trim() || item.name;
     setSearchingItem(item.id);
     setError(null);
     try {
-      const res = await fetch(`/api/spells/retail-kroger/products?q=${encodeURIComponent(item.text)}`);
+      const res = await fetch(`/api/spells/retail-kroger/products?q=${encodeURIComponent(term)}`);
       if (!res.ok) {
         const body: { error?: string } = await res.json();
         throw new Error(body.error ?? "Product search failed");
@@ -123,11 +151,27 @@ export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalP
                 return (
                   <li key={item.id} className="grocery-item kroger-match-item">
                     <div className="kroger-match-row">
-                      <span>{item.text}</span>
+                      <span>{displayLine(item)}</span>
                       {!pickedProduct && (
-                        <button type="button" onClick={() => search(item)} disabled={searchingItem === item.id}>
-                          {searchingItem === item.id ? "Searching…" : "Search"}
-                        </button>
+                        <>
+                          <input
+                            className="kroger-search-term"
+                            value={termFor(item)}
+                            onChange={(e) => editTerm(item.id, e.target.value)}
+                            onBlur={() => persistTerm(item)}
+                            aria-label={`Search term for ${displayLine(item)}`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              persistTerm(item);
+                              search(item);
+                            }}
+                            disabled={searchingItem === item.id}
+                          >
+                            {searchingItem === item.id ? "Searching…" : "Search"}
+                          </button>
+                        </>
                       )}
                       {pickedProduct && (
                         <button type="button" onClick={() => unpick(item.id)}>

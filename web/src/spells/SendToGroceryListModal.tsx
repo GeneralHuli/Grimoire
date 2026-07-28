@@ -1,8 +1,17 @@
 import { useState } from "react";
 
+interface Ingredient {
+  quantity: string;
+  name: string;
+}
+
 interface SendToGroceryListModalProps {
-  ingredients: string[];
+  ingredients: Ingredient[];
   onClose: () => void;
+}
+
+function displayLine(ingredient: Ingredient): string {
+  return ingredient.quantity ? `${ingredient.quantity} ${ingredient.name}`.trim() : ingredient.name;
 }
 
 export function SendToGroceryListModal({ ingredients, onClose }: SendToGroceryListModalProps) {
@@ -19,11 +28,11 @@ export function SendToGroceryListModal({ ingredients, onClose }: SendToGroceryLi
     setSending(true);
     const selected = ingredients.filter((_, i) => checked[i]);
     await Promise.all(
-      selected.map((text) =>
+      selected.map((ingredient) =>
         fetch("/api/spells/grocery-list/items", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ quantity: ingredient.quantity, name: ingredient.name }),
         })
       )
     );
@@ -59,11 +68,11 @@ export function SendToGroceryListModal({ ingredients, onClose }: SendToGroceryLi
             </button>
           </div>
           <ul className="grocery-list">
-            {ingredients.map((text, i) => (
+            {ingredients.map((ingredient, i) => (
               <li key={i} className="grocery-item">
                 <label className="grocery-item-manual">
                   <input type="checkbox" checked={checked[i]} onChange={() => toggle(i)} />
-                  {text}
+                  {displayLine(ingredient)}
                 </label>
               </li>
             ))}

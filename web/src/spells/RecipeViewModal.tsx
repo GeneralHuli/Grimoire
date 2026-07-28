@@ -1,9 +1,9 @@
 import { useState } from "react";
-import type { RecipeFields } from "./RecipesSpell";
+import type { RecipeFields, RecipeIngredient } from "./RecipesSpell";
 import { SendToGroceryListModal } from "./SendToGroceryListModal";
 
 interface RecipeViewModalProps {
-  recipe: RecipeFields & { id: string };
+  recipe: RecipeFields & { id: string; ingredientDetails: RecipeIngredient[] };
   onClose: () => void;
   onEdit?: () => void;
 }
@@ -83,7 +83,7 @@ export function RecipeViewModal({ recipe, onClose, onEdit }: RecipeViewModalProp
       </div>
 
       {sendingToGrocery && (
-        <SendToGroceryListModal ingredients={recipe.ingredients} onClose={() => setSendingToGrocery(false)} />
+        <SendToGroceryListModal ingredients={recipe.ingredientDetails} onClose={() => setSendingToGrocery(false)} />
       )}
     </>
   );

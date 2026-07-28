@@ -1,6 +1,6 @@
 import type { Express } from "express";
 import type { SpellModule } from "../../src/types.js";
-import { listItems, addItem, setItemChecked, deleteItem } from "./store.js";
+import { listItems, addItem, addItemFromText, setItemChecked, setItemSearchTerm, deleteItem } from "./store.js";
 
 const mod: SpellModule = {
   register(app: Express) {
@@ -9,18 +9,28 @@ const mod: SpellModule = {
     });
 
     app.post("/api/spells/grocery-list/items", (req, res) => {
-      const { text } = req.body as { text?: string };
-      if (!text || !text.trim()) {
-        res.status(400).json({ error: "text is required" });
+      const { text, quantity, name } = req.body as { text?: string; quantity?: string; name?: string };
+      if (typeof name === "string" && name.trim()) {
+        const item = addItem((quantity ?? "").trim(), name.trim());
+        res.status(201).json(item);
         return;
       }
-      const item = addItem(text.trim());
+      if (!text || !text.trim()) {
+        res.status(400).json({ error: "name or text is required" });
+        return;
+      }
+      const item = addItemFromText(text.trim());
       res.status(201).json(item);
     });
 
     app.put("/api/spells/grocery-list/items/:id", (req, res) => {
-      const { checked } = req.body as { checked?: boolean };
-      setItemChecked(req.params.id, Boolean(checked));
+      const { checked, searchTerm } = req.body as { checked?: boolean; searchTerm?: string };
+      if (typeof checked === "boolean") {
+        setItemChecked(req.params.id, checked);
+      }
+      if (typeof searchTerm === "string" && searchTerm.trim()) {
+        setItemSearchTerm(req.params.id, searchTerm.trim());
+      }
       res.status(204).end();
     });
 
