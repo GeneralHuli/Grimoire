@@ -36,14 +36,14 @@ export function MealPlanRecipePickerModal({ date, recipes, onClose, onSelect }: 
       >
         <div className="modal-actions">
           <h3 className="modal-actions-title">{dateLabel}</h3>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
         <div className="modal-body">
           <input
             type="search"
-            className="recipes-search"
+            className="field recipes-search"
             placeholder="Search recipes…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}

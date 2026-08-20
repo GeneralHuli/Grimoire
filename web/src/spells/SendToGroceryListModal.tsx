@@ -51,19 +51,19 @@ export function SendToGroceryListModal({ ingredients, onClose }: SendToGroceryLi
       >
         <div className="modal-actions">
           <h3 className="modal-actions-title">Send to Grocery List</h3>
-          <button type="button" className="settings-save" onClick={send} disabled={sending || checkedCount === 0}>
+          <button type="button" className="btn btn-lg" onClick={send} disabled={sending || checkedCount === 0}>
             {sending ? "Sending…" : `Send (${checkedCount})`}
           </button>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
         <div className="modal-body">
           <div className="send-grocery-toolbar">
-            <button type="button" onClick={() => setChecked(ingredients.map(() => true))}>
+            <button type="button" className="btn btn-sm" onClick={() => setChecked(ingredients.map(() => true))}>
               Check all
             </button>
-            <button type="button" onClick={() => setChecked(ingredients.map(() => false))}>
+            <button type="button" className="btn btn-sm" onClick={() => setChecked(ingredients.map(() => false))}>
               Uncheck all
             </button>
           </div>

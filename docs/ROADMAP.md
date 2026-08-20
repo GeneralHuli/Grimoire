@@ -128,14 +128,218 @@ Phases are sequential but each is scoped to ship something usable on its own.
   for correcting a bad auto-split or a name Kroger's search doesn't recognize.
 - Depends on: Grocery List Spell
 
-## Phase 7 — Google Assistant / Home Integration — **Not started**
-- **Research spike first**: Google's Conversational Actions (the old Actions on Google
-  voice-command platform) were shut down in 2023. Current options are the Local Home SDK
-  (device control only, not general Q&A) or routing via a self-hosted intermediary
-  (e.g. Home Assistant conversation integration). This phase's design depends entirely on
-  spike findings — flag to Avry before committing engineering time here.
-- Goal: "Hey Google, ask [device name] to add milk to the list" style commands routed to
-  the relevant Spell's action handler
+## Phase 7 — Voice/Smart-Home Integration — **Parts 1 & 2 done (2026-08-05); Part 3 next**
+
+Original framing ("Hey Google, add milk to the list" routed through an actual Google
+Home speaker) turned out not to be achievable — see the research spike below. Rescoped
+into three independent, separately-buildable pieces instead, each its own Spell/Ritual.
+Agreed build order: **Part 1 → Part 2 → Part 3.**
+
+- **Research spike (done 2026-08-05)** — see `docs/ARCHITECTURE.md` → "External
+  integrations and open risks" for full detail:
+  - Conversational Actions (the old free-text voice-command platform) shut down in 2023
+    and weren't reinstated by the Oct 2025 Assistant → Gemini for Home migration —
+    Google Assistant itself is being fully retired on Android/Wear OS in Sept 2026.
+    Every current Google developer surface is fixed-trait device control, not free-text
+    command routing — literal "Hey Google, add milk" (with milk as a captured
+    parameter) isn't achievable through Google, and the Assistant SDK is
+    experimental/non-commercial-only, so it isn't a building block for Part 1 either.
+  - The Smart Device Management (SDM) API (Nest Device Access program) is real,
+    self-serve ($5 one-time fee), OAuth2, and REST-callable from a normal backend —
+    covers Nest-branded thermostats/cameras/doorbells only, including WebRTC camera
+    live-view.
+  - Non-Nest "Works with Google Home" devices (Hue, Kasa, etc.) are only reachable
+    through Google's Device/Structure/Automation "Home APIs" — **Android/iOS-only
+    native SDKs**, not callable from Grimoire's web/Node stack without embedding a
+    native mobile shell.
+  - Cloud-to-Cloud (the smart-home-Action fulfillment platform) can be registered and
+    used indefinitely for personal/family use with a linked test Google account, no
+    commercial certification required — but it's the same trait model as everything
+    else, so realistically means modeling Grimoire actions as `SCENE` virtual devices
+    (`ActivateScene`), i.e. fixed named commands ("Hey Google, activate Add Milk"), not
+    free text.
+
+### Part 1 — In-app voice/text command input (Spell) — **Done (2026-08-05)**
+- New `voice-commands` Spell (`server/spells/voice-commands/`, `web/src/spells/
+  VoiceCommandSpell.tsx`), no `requires` — same "plain frontend fetch into another
+  Spell's existing endpoint" pattern the Grocery List/Recipes integration already
+  established, not a backend cross-Spell dependency.
+- Backend is one route, `POST /api/spells/voice-commands/parse`: reuses the Recipes
+  Spell's Claude API pattern (`claude-opus-4-8`, `output_config.format`,
+  `ANTHROPIC_API_KEY`) to turn command text into a structured intent. The frontend sends
+  along the live grocery list, chore boards (with tasks), and recipe titles as context so
+  Claude resolves names to IDs itself (handles typos/fuzzy names) rather than a
+  hand-written matcher — confirmed working against real data (e.g. "mark dishes done for
+  Alex" correctly resolved to the right task ID among several on that person's board).
+  Also correctly resolves relative dates ("tomorrow", "next Tuesday") using the server's
+  current date, since Google Assistant's SDK is a dead end for this anyway (see spike
+  above).
+- Note for future structured-output schemas: Anthropic's `json_schema` format does **not**
+  support the OpenAI-style nullable idiom (`type: ["string", "null"]`) — every optional
+  field had to be modeled as a required plain string, using `""` to mean "not
+  applicable," discovered when the first schema draft was rejected by the API.
+  `parseCommand.ts` is the reference example.
+- Covers Grocery (add/check/remove), Chores (add/complete/reopen), Calendar
+  (create/query), and Meal Plan (add/remove) — each action calls the target Spell's
+  existing, unchanged REST endpoint; ambiguous/unresolvable commands return a
+  clarifying question instead of guessing.
+- Browser speech-to-text (Web Speech API) for capture, click-to-listen (no wake-word —
+  that remains a Phase 10 kiosk-hardware stretch goal, not core scope); a typed-text
+  input is always available as a fallback (needed for browsers without
+  `SpeechRecognition`, e.g. Firefox/Safari) and was what got tested end-to-end, since
+  headless environments can't grant a real microphone.
+- **Not yet verified**: the actual mic capture / speech-to-text path, and the React UI
+  rendering itself, since no headless-browser tool was available to drive/screenshot it
+  in this environment — the typed-command path was verified by exercising the real
+  `/parse` endpoint plus the exact follow-up calls the frontend makes (grocery add,
+  chores complete/reopen round-tripped and restored). Open the app and try the mic button
+  and the card's layout in a real browser to confirm those two pieces.
+
+### Part 2 — Smart home device control + camera feeds (Spell) — **Done (2026-08-05)**
+- **Rescoped away from Google entirely.** The actual goal surfaced while scoping this
+  part: replace the household's Google Nest Hub outright, with every device (not just
+  Nest) controllable from Grimoire's own interface — the server does the work, the
+  Pi/touchscreen (and phone/desktop) are thin display clients, matching Grimoire's
+  existing architecture. Two Google-native paths were considered and rejected:
+  - The Device/Structure/Automation "Home APIs" covering all brands are **Android/iOS-only
+    native SDKs** with no web/REST access — a hard platform constraint, not fixable from
+    Grimoire's web/Node stack.
+  - Running a headless Android instance on the server (Redroid) to embed those SDKs was
+    considered and rejected: Google's Play Integrity API is designed to detect and can
+    block sensitive flows (account linking) on emulated/non-certified devices, and it
+    would add a heavy, fragile new runtime for uncertain payoff.
+  - **Decision: Home Assistant is the actual smart-home backend now.** Runs as an
+    ordinary Docker container (new `home-assistant` service in
+    `docker/docker-compose.yml`, no new tech category), covers 2,700+ integrations across
+    every major brand, and already has a mature Nest integration built on the SDM API —
+    one project instead of two.
+- New `smart-home` Spell (`server/spells/smart-home/`, `web/src/spells/SmartHomeSpell.tsx`
+  + `SmartHomeSettings.tsx`) is a thin authenticated REST client against Home Assistant's
+  own API — no OAuth flow needed at all, just a long-lived access token generated by hand
+  in Home Assistant's own UI and pasted into Grimoire's Settings once (simpler than
+  Kroger/Google/SDM, which all need a registered OAuth client).
+- Covers lights, switches, thermostats, locks, fans, and covers (one generic
+  `POST /devices/:entityId/call` proxy to Home Assistant's `/api/services/<domain>/<service>`
+  — adding a new control later needs no backend changes) plus camera snapshots and **live
+  view via proxied MJPEG** (`/api/camera_proxy_stream/`) — simpler than originally
+  planned: browsers render `multipart/x-mixed-replace` natively in a plain `<img>` tag, so
+  live view needed no WebSocket client, no signed URLs, and no new frontend dependency at
+  all (lower quality than HLS/WebRTC, but zero new moving parts for v1).
+- Verified end-to-end against Home Assistant's own Demo integration (`demo:` in
+  `configuration.yaml`) — device listing, light on/off, climate temperature adjustment,
+  lock/unlock, and both camera snapshot and live-stream proxying all confirmed working
+  against real HTTP responses (a real JPEG came back for the snapshot, the correct
+  `multipart/x-mixed-replace` content-type for the stream).
+- **Controls redone as purpose-built widgets instead of generic checkboxes/buttons**
+  (2026-08-14): a vertical `SmartHomeLevelSlider` (`web/src/spells/SmartHomeLevelSlider.tsx`)
+  drives light brightness, fan speed, and cover position via one shared Pointer Events
+  gesture (tap toggles on/off, drag sets level live then commits on release, a long-press
+  hook is reused for lights only) — filled with a CSS gradient computed from the light's
+  actual `rgb_color`/`hs_color`/`color_temp_kelvin` (`smartHomeAttributes.ts`, includes a
+  Kelvin→RGB approximation for color-temp-only bulbs). Long-pressing a light opens
+  `SmartHomeColorPicker`, a small popover with either a hue strip + presets (RGB/HS/XY
+  bulbs) or a warm↔cool strip (color-temp-only bulbs). Locks get `SmartHomeLockControl`, a
+  circular button with an animated SVG shackle that swings open/closed and color-codes
+  locked/unlocked/jammed. Climate gets `SmartHomeThermostatControl`, a Nest-style 270° arc
+  dial (drag around the ring or use the +/- buttons) colored by `hvac_action`; dual-setpoint
+  thermostats (no single `temperature` attribute, e.g. the demo's `climate.ecobee`) degrade
+  to a read-only dial rather than crashing — full heat/cool range editing wasn't in scope.
+  Plain switches (and fans without `percentage_step`, i.e. no speed control) get
+  `SmartHomeSwitchToggle`, a sliding pill switch reused in the home-dashboard glance widget
+  too. Fan speed-capability is read from `percentage_step`'s presence, not from whether
+  `percentage` currently holds a number — Home Assistant reports `percentage: null` for a
+  speed-capable fan that's simply off, which would otherwise wrongly fall back to the plain
+  toggle. Position-capable covers reuse the level slider; others (including tilt-only covers,
+  a currently-unmodeled edge case) fall back to `SmartHomeCoverControl`, an open/stop/close
+  button trio that hides the stop button when `supported_features` lacks the STOP bit.
+  Verified visually against the same Demo integration (headless Chrome screenshots), which
+  incidentally exercised the jammed-lock and dual-setpoint-climate edge cases live.
+- **Compact (home-dashboard glance) view got the same controls, plus a picker** (2026-08-14):
+  the per-domain dispatch and optimistic-update logic were pulled out of
+  `SmartHomeSpell.tsx` into shared `SmartHomeDeviceTile.tsx` +
+  `smartHomeActions.ts`, so `SmartHomeGlance.tsx`'s "Board" widget now renders the exact
+  same sliders/lock button/thermostat dial/switches as the full view (in a horizontally
+  scrolling strip, `.smart-home-glance-strip`) instead of a plain checkbox list. Which
+  devices show there is chosen in Settings → Smart Home → "Compact view" (a checklist
+  saved as `glanceEntityIds` under the `smart-home` settings scope, same
+  `PUT /api/settings/:scope` pattern Chores uses for `listIds`) rather than being
+  auto-picked. Also fixed from initial user testing: the brightness/speed/position slider
+  was reacting to mouse hover, not just drag (its pointermove handler wasn't gated on an
+  active pointerdown); the lock's shackle-open animation rotated the wrong way into the
+  body (replaced with two hand-drawn open/closed SVG paths cross-faded by opacity instead
+  of a computed CSS rotation); and a fan's toggle-fallback tile rendered as an oversized
+  oval (it was being flex-stretched to match its taller slider siblings, then
+  `border-radius: 999px` turned the stretched rectangle into a blob -- fixed with
+  `align-items: flex-end` on the tile row). All drag surfaces (level slider, thermostat
+  dial, color/warmth picker strip) also got `user-select: none` -- dragging was
+  highlighting the surrounding text/icons since nothing stopped the browser's default
+  text-selection gesture.
+- **Thermostat dial simplified** (2026-08-14): removed the +/- stepper buttons entirely
+  (drag is now the only way to set a target temperature) and a pointerdown only starts a
+  drag when it lands on the visible arc itself (`isOnTrack` in
+  `SmartHomeThermostatControl.tsx`, a radius+angle band check) rather than anywhere in
+  the dial's square hit area, so a tap in the middle no longer accidentally jumps the
+  target temperature. That freed-up center area now cycles `hvac_mode` through
+  heat/cool/heat_cool on tap -- filtered to whichever of those three the device actually
+  reports in `hvac_modes` (`climateHvacModes` in `smartHomeAttributes.ts`), via a new
+  `climate.set_hvac_mode` action (`setHvacMode` in `smartHomeActions.ts`); a device with
+  fewer than two applicable modes just ignores the tap.
+- **Compact view got its own draggable grid, then reworked to fill the widget with no
+  scrolling and a drawer-based add flow** (2026-08-14): a small self-contained 8-wide x
+  4-tall grid (`SMART_HOME_GRID_COLS/ROWS` in the new `smartHomeGrid.ts`) lives entirely
+  inside the widget card, independent of the home dashboard's outer grid. Its tracks are
+  CSS `1fr` (not a fixed pixel size), so the grid always exactly fills whatever the
+  widget card gives it with no scrollbar; a `ResizeObserver` on the grid container
+  (`SmartHomeGlance.tsx`) measures the actual rendered cell size and applies
+  `transform: scale(cellPx / 104)` uniformly to every control's content so each one
+  shrinks or grows to fit its allocated cell(s) rather than overflowing or clipping.
+  Control sizing is still domain-driven (`controlGridSize`): thermostats 2x2,
+  brightness/speed/position sliders 1x2, everything else (switches, the lock button, the
+  cover open/stop/close trio) 1x1.
+  Selection moved from a Settings checklist to a small gear-icon button on the widget
+  itself, opening `SmartHomeGlanceDrawer` -- a slide-out palette of every controllable
+  device not yet on the grid, dragged out onto the grid to place it (`pickDrawerEdge`
+  picks whichever screen edge -- left/right/top/bottom -- has the most free space
+  relative to the widget's own position, so the drawer always opens toward room rather
+  than off-screen). Placing works via a second drag hook, `smartHomeGridInsertDrag.ts`
+  (hit-tests the grid's rect on every move, since an incoming chip has no starting grid
+  cell to offset from, unlike repositioning an already-placed control). Already-placed
+  controls are still dragged to reposition and can be unpicked with an "x", both gated
+  behind the same gear-icon edit mode -- deliberately mirroring `web/src/homeGrid`'s own
+  edit-mode/drag-cell/remove-button pattern rather than inventing a different
+  interaction for what's conceptually the same idea at a smaller scale. `SmartHomeSettings.tsx`
+  no longer has a "Compact view" section at all now that the drawer covers it.
+  The settings key changed shape from a flat `glanceEntityIds: string[]` to
+  `glanceLayout: {entityId, x, y}[]` (position now implies inclusion); this was a
+  breaking change to the previously-saved settings shape, so anyone who'd already picked
+  compact-view devices needs to re-pick them once. Also: the lock button no longer shows
+  a "Locked"/"Unlocked" text line (state is still exposed via `aria-label`) -- it was
+  both visual clutter and too tall to comfortably fit a 1x1 grid cell.
+- **Not yet verified**: real device pairing and real camera streaming, since this dev
+  Home Assistant instance runs under Docker Desktop/WSL2 on Windows and can't reach the
+  actual home LAN (mDNS/SSDP auto-discovery needs `network_mode: host`, which doesn't
+  behave the same way here as on a native Linux host). This becomes testable once Home
+  Assistant runs somewhere with real LAN access — most naturally the eventual Proxmox
+  deployment (Phase 8).
+- **Optional add-on, configured entirely inside Home Assistant, no Grimoire code**: the
+  `google_assistant_sdk` Home Assistant integration (send commands *to* Google Assistant —
+  casting, broadcast announcements, spoken-answer playback) — see
+  `docs/setup/google-assistant-sdk.md`. Reuses the same Google Cloud project as
+  `google-account` but needs its own OAuth Client ID/secret and Home Assistant's own live
+  consent flow; requires Avry's own hands-on setup, not something scriptable end-to-end.
+  Distinct from the `google_assistant` integration (exposing devices *to* Google Home for
+  voice control), which is what Part 3 below is actually about.
+  deployment (Phase 8).
+
+### Part 3 — Grimoire as a Google smart-home fulfillment target (Ritual) — **Not started**
+- Cloud-to-Cloud integration registered in the Google Home Developer Console; OAuth2
+  account linking + a fulfillment webhook implementing `SYNC`/`QUERY`/`EXECUTE`. No
+  visible UI (a Ritual, not a Spell) apart from a Settings tab for linking, same shape as
+  `google-account`.
+  Trait model realistically means one `SCENE` virtual device per canned action
+  ("Grimoire: Add Milk", "Grimoire: Start Grocery Sync") activated by name — not
+  arbitrary free-text commands. Test/use via a personal linked Google account; no
+  commercial certification needed for private family use.
 
 ## Phase 8 — Proxmox LXC Deployment — **Not started**
 - Deployment target is an unprivileged LXC container on the Proxmox-hosted Dell server,
@@ -163,9 +367,64 @@ Phases are sequential but each is scoped to ship something usable on its own.
 
 ## Phase 10 — Kiosk Polish (Raspberry Pi client) — **Not started**
 - Chromium kiosk mode on the Pi touchscreen, pointed at the Grimoire server on the LAN
-- Module layout configuration (MagicMirror-style: position modules in a grid via config,
-  no code changes needed) — shared with the mobile view where it makes sense
-- Theming pass
+- Module layout configuration and the theming pass originally scoped here shipped early,
+  as Phase 11 below — what's left is specifically the Pi hardware/kiosk-mode setup
+
+## Phase 11 — Home Dashboard Redesign — **Done (2026-08-13)**
+- Pulled forward from Phase 10 (module layout configuration, theming) plus a new Weather
+  Spell, done together since the "everything visible on one no-scroll screen" goal drove
+  all three at once.
+- **Dark mode, default-on**: a real CSS custom-property token layer
+  (`web/src/index.css`) with a `data-theme` attribute, replacing the old
+  OS-only `canvas`/`canvastext`/`color-scheme: light dark` approach. Dark is the default
+  when no choice is saved (not just a system-preference fallback); "System"/"Light" stay
+  available in Settings → General, plus a one-tap toggle in the new side dock.
+  `web/src/appState/ThemeContext.tsx` is this app's first Context provider.
+- **Weather Spell** (`server/spells/weather/`, `web/src/spells/WeatherSpell.tsx` +
+  `WeatherSettings.tsx`): Open-Meteo (free, keyless forecast + geocoding APIs) —
+  location is searched and saved once in Settings (no browser geolocation, since this is
+  a stationary kiosk display), with a short server-side in-memory cache on forecast
+  responses.
+- **Navigation shell**: a persistent side icon dock
+  (`web/src/components/SideDock.tsx`) listing every Spell; tapping one opens that
+  Spell's existing, unmodified full component full-screen
+  (`web/src/components/SpellDetailView.tsx`). View state lives in
+  `location.hash` (`web/src/appState/ViewContext.tsx`) — free back-button support, no
+  router dependency added.
+- **Home widget-grid engine** (`web/src/homeGrid/`): the homepage is now an
+  Android-launcher-style grid, fixed-size and non-scrolling, where every Spell declares
+  one or more compact "glance" widget size variants
+  (`web/src/spells/homeWidgets/registry.tsx`) rather than rendering its full card
+  unconditionally like before. An "Edit Layout" mode supports dragging widgets to
+  reposition (Pointer Events–based, `web/src/homeGrid/dragEngine.ts` — HTML5 DnD was
+  ruled out for lacking touch support) with live valid/invalid drop highlighting, and
+  tapping to cycle through a Spell's declared sizes. Layout persists via
+  `GET/PUT /api/settings/layout` (no backend changes needed — the generic settings store
+  already supports arbitrary scopes); a hand-picked default layout
+  (`web/src/homeGrid/defaultLayout.ts`) applies and saves itself on first run so the
+  homepage is never blank.
+- Every existing Spell (Calendar, Chores, Recipes, Meal Plan, Grocery List, Voice
+  Commands, Smart Home) got new glance-widget components as part of this phase, not
+  deferred — see each Spell's `web/src/spells/<Spell>Glance.tsx`. Smart Home also gained
+  one new backend route, `GET /api/spells/smart-home/summary`, for a condensed
+  per-domain device-count widget (the only glance widget needing a new endpoint; every
+  other one reuses its Spell's existing endpoint).
+- **Calendar's "Month" glance widget shows event titles per day, not just a dot** (2026-08-20):
+  each day cell in `CalendarMiniMonthGlance` now renders its first event's title (ellipsized)
+  plus a "+N" count, mirroring the full `CalendarSpell` month view instead of a bare
+  presence dot. Tapping a day pops a fixed-position day-detail panel
+  (`.mini-month-overlay`) out over whatever sits to the widget's right — sized to one of
+  the widget's own grid columns and positioned via a measured `getBoundingClientRect`,
+  the same idea as the Smart Home glance's slide-out drawer, so it works regardless of
+  what's actually placed next to it on the dashboard or whether the widget is flush
+  against the grid's edge. A new, wider size variant, "Month + Day"
+  (`CalendarMonthDayGlance`, `HOME_WIDGET_VARIANTS.calendar`), permanently reserves that
+  extra grid column instead of popping it out on demand, defaulting to today and updating
+  in place when another day is tapped.
+- **Not yet verified**: real-device drag/tap interaction on an actual touchscreen (typechecked
+  and lint-clean, and manually reachable in a desktop browser, but this environment has
+  no way to drive a real touch input) — try Edit Layout on the Pi/kiosk touchscreen once
+  deployed there to confirm the drag gesture feels right.
 
 ## Backlog / later ideas
 - Additional Spells as they come up (explicitly expected — the module architecture exists

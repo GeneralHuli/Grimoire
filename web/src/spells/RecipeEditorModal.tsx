@@ -68,25 +68,26 @@ export function RecipeEditorModal({ id, initial, onClose, onSaved, onDeleted }: 
         <div className="modal-actions">
           <h3 className="modal-actions-title">{id ? "Edit Recipe" : "New Recipe"}</h3>
           {id && (
-            <button type="button" className="recipe-delete" onClick={del}>
+            <button type="button" className="btn btn-lg btn-danger" onClick={del}>
               Delete
             </button>
           )}
-          <button type="button" className="settings-save" onClick={save} disabled={saving}>
+          <button type="button" className="btn btn-lg" onClick={save} disabled={saving}>
             {saving ? "Saving…" : "Save"}
           </button>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
         <div className="modal-body">
           <label className="settings-field">
             Title
-            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
           <label className="settings-field">
             Meal type
             <input
+              className="field"
               value={mealType}
               onChange={(e) => setMealType(e.target.value)}
               placeholder="e.g. Dinner, Breakfast"
@@ -94,7 +95,7 @@ export function RecipeEditorModal({ id, initial, onClose, onSaved, onDeleted }: 
           </label>
           <label className="settings-field">
             Ease
-            <select value={ease} onChange={(e) => setEase(e.target.value)}>
+            <select className="field" value={ease} onChange={(e) => setEase(e.target.value)}>
               <option value="easy">Easy</option>
               <option value="medium">Medium</option>
               <option value="hard">Hard</option>
@@ -119,7 +120,7 @@ export function RecipeEditorModal({ id, initial, onClose, onSaved, onDeleted }: 
           <label className="settings-field">
             Ingredients (one per line)
             <textarea
-              className="recipe-textarea"
+              className="field recipe-textarea"
               value={ingredientsText}
               onChange={(e) => setIngredientsText(e.target.value)}
               rows={6}
@@ -128,7 +129,7 @@ export function RecipeEditorModal({ id, initial, onClose, onSaved, onDeleted }: 
           <label className="settings-field">
             Steps (one per line)
             <textarea
-              className="recipe-textarea"
+              className="field recipe-textarea"
               value={stepsText}
               onChange={(e) => setStepsText(e.target.value)}
               rows={6}

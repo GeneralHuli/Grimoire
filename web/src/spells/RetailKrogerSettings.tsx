@@ -69,7 +69,7 @@ export function RetailKrogerSettings() {
     return (
       <div className="settings-panel">
         <p>{statusError}</p>
-        <button className="settings-save" onClick={refreshStatus}>
+        <button className="btn btn-lg" onClick={refreshStatus}>
           Retry
         </button>
       </div>
@@ -87,7 +87,7 @@ export function RetailKrogerSettings() {
       {connected ? (
         <>
           <p>Status: Connected</p>
-          <button className="settings-save" onClick={disconnect}>
+          <button className="btn btn-lg" onClick={disconnect}>
             Disconnect Fred Meyer Account
           </button>
         </>
@@ -101,7 +101,7 @@ export function RetailKrogerSettings() {
             opened with no referrer (e.g. typed fresh in a new tab). rel="noreferrer"
             suppresses the Referer header for this navigation and its redirect chain.
           */}
-          <a className="calendar-connect" href="/api/spells/retail-kroger/auth/start" rel="noreferrer">
+          <a className="btn btn-lg" href="/api/spells/retail-kroger/auth/start" rel="noreferrer">
             Connect Fred Meyer Account
           </a>
         </>
@@ -111,12 +111,13 @@ export function RetailKrogerSettings() {
       {locationId ? <p>Current store: {locationName || locationId}</p> : <p>No store picked yet.</p>}
       <div className="chores-add">
         <input
+          className="field"
           placeholder="Zip code"
           value={zipCode}
           onChange={(e) => setZipCode(e.target.value)}
           aria-label="Zip code"
         />
-        <button type="button" onClick={searchLocations} disabled={searching}>
+        <button type="button" className="btn" onClick={searchLocations} disabled={searching}>
           {searching ? "Searching…" : "Find stores"}
         </button>
       </div>

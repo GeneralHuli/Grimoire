@@ -59,7 +59,7 @@ export function ChoresSettings() {
   return (
     <div className="settings-panel">
       <div className="settings-panel-actions">
-        <button className="settings-save" onClick={save}>
+        <button className="btn btn-lg" onClick={save}>
           {saved ? "Saved" : "Save"}
         </button>
       </div>

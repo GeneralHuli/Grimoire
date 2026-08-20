@@ -44,7 +44,7 @@ export function SettingsModal({ spells, onClose }: SettingsModalProps) {
         <div className="settings-panel-wrapper">
           <div className="modal-actions">
             <h3 className="modal-actions-title">{activeLabel}</h3>
-            <button className="settings-close" onClick={onClose} aria-label="Close settings">
+            <button className="btn btn-icon" onClick={onClose} aria-label="Close settings">
               ×
             </button>
           </div>

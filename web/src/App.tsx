@@ -1,7 +1,29 @@
 import { useEffect, useState } from "react";
-import { SPELL_COMPONENTS } from "./spells/registry";
 import { SettingsModal } from "./components/SettingsModal";
+import { SideDock } from "./components/SideDock";
+import { SpellDetailView } from "./components/SpellDetailView";
+import { HomeGrid } from "./homeGrid/HomeGrid";
+import { ViewProvider, useView } from "./appState/ViewContext";
 import type { SpellManifest } from "./types";
+
+interface AppShellProps {
+  spells: SpellManifest[];
+  onOpenSettings: () => void;
+}
+
+function AppShell({ spells, onOpenSettings }: AppShellProps) {
+  const { view } = useView();
+  const activeSpell = view.kind === "spell" ? spells.find((s) => s.name === view.name) : undefined;
+
+  return (
+    <div className="grimoire-body">
+      <SideDock spells={spells} onOpenSettings={onOpenSettings} />
+      <div className="grimoire-main">
+        {view.kind === "spell" && activeSpell ? <SpellDetailView spell={activeSpell} /> : <HomeGrid spells={spells} />}
+      </div>
+    </div>
+  );
+}
 
 export function App() {
   const [spells, setSpells] = useState<SpellManifest[]>([]);
@@ -15,27 +37,17 @@ export function App() {
   }, []);
 
   return (
-    <>
+    <ViewProvider>
       <header className="grimoire-header">
         <h1>Grimoire</h1>
-        <button
-          className="settings-open"
-          onClick={() => setSettingsOpen(true)}
-          aria-label="Open settings"
-        >
-          ⚙
-        </button>
       </header>
-      <main className="grimoire-grid">
-        {spells.map((spell) => {
-          const Component = spell.frontend ? SPELL_COMPONENTS[spell.frontend] : undefined;
-          if (!Component) return null;
-          // Remounting on settings close is a blunt tool, but it guarantees every
-          // widget re-fetches with whatever just changed (e.g. Calendar's selected
-          // calendarId) without each Spell needing its own "did settings change" wiring.
-          return <Component key={`${spell.name}-${settingsVersion}`} />;
-        })}
-      </main>
+      {/*
+       * Remounting the whole shell on settings close is the same blunt-but-reliable tool
+       * the old per-Spell grid used: it guarantees every widget/detail view re-fetches
+       * with whatever setting just changed, without each Spell needing its own
+       * "did settings change" wiring.
+       */}
+      <AppShell key={settingsVersion} spells={spells} onOpenSettings={() => setSettingsOpen(true)} />
       {settingsOpen && (
         <SettingsModal
           spells={spells}
@@ -45,6 +57,6 @@ export function App() {
           }}
         />
       )}
-    </>
+    </ViewProvider>
   );
 }

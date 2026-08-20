@@ -55,17 +55,17 @@ export function CalendarEventModal({ event, onClose, onSaved }: CalendarEventMod
       >
         <div className="modal-actions">
           <h3 className="modal-actions-title">Edit Event</h3>
-          <button type="button" className="settings-save" onClick={save} disabled={saving}>
+          <button type="button" className="btn btn-lg" onClick={save} disabled={saving}>
             {saving ? "Saving…" : "Save"}
           </button>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
         <div className="modal-body">
           <label className="settings-field">
             Title
-            <input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input className="field" value={title} onChange={(e) => setTitle(e.target.value)} />
           </label>
           <label className="settings-field settings-field-inline">
             <input type="checkbox" checked={allDay} onChange={(e) => toggleAllDay(e.target.checked)} />
@@ -75,6 +75,7 @@ export function CalendarEventModal({ event, onClose, onSaved }: CalendarEventMod
             Starts
             <input
               type={allDay ? "date" : "datetime-local"}
+              className="field"
               value={start}
               onChange={(e) => setStart(e.target.value)}
             />
@@ -83,6 +84,7 @@ export function CalendarEventModal({ event, onClose, onSaved }: CalendarEventMod
             Ends
             <input
               type={allDay ? "date" : "datetime-local"}
+              className="field"
               value={end}
               onChange={(e) => setEnd(e.target.value)}
             />

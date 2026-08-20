@@ -39,10 +39,10 @@ export function RecipeGenerateModal({ onClose, onGenerated }: RecipeGenerateModa
       >
         <div className="modal-actions">
           <h3 className="modal-actions-title">Generate with AI</h3>
-          <button type="button" className="settings-save" onClick={generate} disabled={loading || !prompt}>
+          <button type="button" className="btn btn-lg" onClick={generate} disabled={loading || !prompt}>
             {loading ? "Generating…" : "Generate"}
           </button>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
@@ -51,7 +51,7 @@ export function RecipeGenerateModal({ onClose, onGenerated }: RecipeGenerateModa
           <label className="settings-field">
             What do you want to cook?
             <textarea
-              className="recipe-textarea"
+              className="field recipe-textarea"
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={4}

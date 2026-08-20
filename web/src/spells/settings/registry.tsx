@@ -3,6 +3,8 @@ import { GoogleAccountSettings } from "../GoogleAccountSettings";
 import { CalendarSettings } from "../CalendarSettings";
 import { ChoresSettings } from "../ChoresSettings";
 import { RetailKrogerSettings } from "../RetailKrogerSettings";
+import { SmartHomeSettings } from "../SmartHomeSettings";
+import { WeatherSettings } from "../WeatherSettings";
 
 /**
  * Maps a Spell's manifest `name` to a custom settings panel. Spells not
@@ -13,4 +15,6 @@ export const SPELL_SETTINGS_COMPONENTS: Record<string, ComponentType> = {
   calendar: CalendarSettings,
   chores: ChoresSettings,
   "retail-kroger": RetailKrogerSettings,
+  "smart-home": SmartHomeSettings,
+  weather: WeatherSettings,
 };

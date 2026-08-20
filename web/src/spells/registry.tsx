@@ -4,6 +4,9 @@ import { ChoresSpell } from "./ChoresSpell";
 import { RecipesSpell } from "./RecipesSpell";
 import { MealPlanSpell } from "./MealPlanSpell";
 import { GroceryListSpell } from "./GroceryListSpell";
+import { VoiceCommandSpell } from "./VoiceCommandSpell";
+import { SmartHomeSpell } from "./SmartHomeSpell";
+import { WeatherSpell } from "./WeatherSpell";
 
 /**
  * Maps a Spell's manifest `frontend` field to the component that renders it.
@@ -17,4 +20,7 @@ export const SPELL_COMPONENTS: Record<string, ComponentType> = {
   recipes: RecipesSpell,
   "meal-plan": MealPlanSpell,
   "grocery-list": GroceryListSpell,
+  "voice-commands": VoiceCommandSpell,
+  "smart-home": SmartHomeSpell,
+  weather: WeatherSpell,
 };

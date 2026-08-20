@@ -82,13 +82,13 @@ export function MealPlanSpell() {
       <h2>Meal Planner</h2>
       <div className="calendar-toolbar">
         <div className="calendar-nav">
-          <button type="button" onClick={() => setWeekStart(addDays(weekStart, -7))} aria-label="Previous week">
+          <button type="button" className="btn" onClick={() => setWeekStart(addDays(weekStart, -7))} aria-label="Previous week">
             ‹
           </button>
-          <button type="button" onClick={() => setWeekStart(startOfWeek(new Date()))}>
+          <button type="button" className="btn" onClick={() => setWeekStart(startOfWeek(new Date()))}>
             Today
           </button>
-          <button type="button" onClick={() => setWeekStart(addDays(weekStart, 7))} aria-label="Next week">
+          <button type="button" className="btn" onClick={() => setWeekStart(addDays(weekStart, 7))} aria-label="Next week">
             ›
           </button>
         </div>

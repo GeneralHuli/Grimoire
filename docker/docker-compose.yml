@@ -34,7 +34,22 @@ services:
     depends_on:
       - server
 
+  # Smart-home backend for the `smart-home` Spell (see server/spells/smart-home/). Not
+  # network_mode: host -- that's for mDNS/SSDP device auto-discovery on the LAN, which
+  # doesn't work the same way under Docker Desktop/WSL2 on Windows as it would on a real
+  # Linux host anyway. Real device pairing/discovery happens wherever this ends up
+  # running for real (the eventual Proxmox deployment); this dev instance is for
+  # exercising the Grimoire-side integration against Home Assistant's own demo entities.
+  # First-run setup (admin account, timezone) happens through its own web UI at :8123.
+  home-assistant:
+    image: ghcr.io/home-assistant/home-assistant:2026.8.1
+    volumes:
+      - ha_config:/config
+    ports:
+      - "8123:8123"
+
 volumes:
   server_node_modules:
   web_node_modules:
   grimoire_data:
+  ha_config:

@@ -29,14 +29,14 @@ export function GoogleAccountStatus() {
   return connected ? (
     <>
       <p>Status: Connected</p>
-      <button className="settings-save" onClick={disconnect}>
+      <button className="btn btn-lg" onClick={disconnect}>
         Disconnect Google Account
       </button>
     </>
   ) : (
     <>
       <p>Status: Not connected</p>
-      <a className="calendar-connect" href="/api/spells/google-account/auth/start">
+      <a className="btn btn-lg" href="/api/spells/google-account/auth/start">
         Sign in with Google
       </a>
     </>

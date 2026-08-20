@@ -130,13 +130,13 @@ export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalP
           <h3 className="modal-actions-title">Send to Fred Meyer Cart</h3>
           <button
             type="button"
-            className="settings-save"
+            className="btn btn-lg"
             onClick={sendToCart}
             disabled={sending || selectedCount === 0 || done}
           >
             {sending ? "Adding…" : `Add ${selectedCount} to Cart`}
           </button>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
@@ -155,7 +155,7 @@ export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalP
                       {!pickedProduct && (
                         <>
                           <input
-                            className="kroger-search-term"
+                            className="field kroger-search-term"
                             value={termFor(item)}
                             onChange={(e) => editTerm(item.id, e.target.value)}
                             onBlur={() => persistTerm(item)}
@@ -163,6 +163,7 @@ export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalP
                           />
                           <button
                             type="button"
+                            className="btn btn-sm"
                             onClick={() => {
                               persistTerm(item);
                               search(item);
@@ -174,7 +175,7 @@ export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalP
                         </>
                       )}
                       {pickedProduct && (
-                        <button type="button" onClick={() => unpick(item.id)}>
+                        <button type="button" className="btn btn-sm" onClick={() => unpick(item.id)}>
                           Clear match
                         </button>
                       )}

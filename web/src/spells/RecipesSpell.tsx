@@ -87,18 +87,18 @@ export function RecipesSpell() {
     <div className="spell-card recipes-card">
       <h2>Recipes</h2>
       <div className="recipes-toolbar">
-        <button type="button" onClick={() => setEditing({ fields: EMPTY_FIELDS })}>
+        <button type="button" className="btn" onClick={() => setEditing({ fields: EMPTY_FIELDS })}>
           + New
         </button>
-        <button type="button" onClick={() => setImporting(true)}>
+        <button type="button" className="btn" onClick={() => setImporting(true)}>
           Import from URL
         </button>
-        <button type="button" onClick={() => setGenerating(true)}>
+        <button type="button" className="btn" onClick={() => setGenerating(true)}>
           Generate with AI
         </button>
         <input
           type="search"
-          className="recipes-search"
+          className="field recipes-search"
           placeholder="Search recipes…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}

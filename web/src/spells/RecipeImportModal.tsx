@@ -39,10 +39,10 @@ export function RecipeImportModal({ onClose, onImported }: RecipeImportModalProp
       >
         <div className="modal-actions">
           <h3 className="modal-actions-title">Import from URL</h3>
-          <button type="button" className="settings-save" onClick={importUrl} disabled={loading || !url}>
+          <button type="button" className="btn btn-lg" onClick={importUrl} disabled={loading || !url}>
             {loading ? "Importing…" : "Import"}
           </button>
-          <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
             ×
           </button>
         </div>
@@ -51,6 +51,7 @@ export function RecipeImportModal({ onClose, onImported }: RecipeImportModalProp
           <label className="settings-field">
             Recipe URL
             <input
+              className="field"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="https://example.com/recipe"

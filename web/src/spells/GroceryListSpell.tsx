@@ -71,17 +71,20 @@ export function GroceryListSpell() {
         }}
       >
         <input
+          className="field"
           placeholder="Add an item…"
           value={newItemText}
           onChange={(e) => setNewItemText(e.target.value)}
           aria-label="Add a grocery item"
         />
-        <button type="submit">Add</button>
+        <button type="submit" className="btn">
+          Add
+        </button>
       </form>
 
       {krogerConnected && items !== null && items.some((i) => !i.checked) && (
         <div className="send-grocery-toolbar">
-          <button type="button" onClick={() => setShowKrogerModal(true)}>
+          <button type="button" className="btn btn-sm" onClick={() => setShowKrogerModal(true)}>
             Send to Fred Meyer
           </button>
         </div>

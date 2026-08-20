@@ -77,7 +77,7 @@ export function ChoresSpell() {
       <div className="spell-card">
         <h2>Chores</h2>
         <p>Needs a connected Google Account.</p>
-        <a className="calendar-connect" href="/api/spells/google-account/auth/start">
+        <a className="btn btn-lg" href="/api/spells/google-account/auth/start">
           Sign in with Google
         </a>
       </div>
@@ -108,11 +108,14 @@ export function ChoresSpell() {
               }}
             >
               <input
+                className="field"
                 placeholder="Add a chore…"
                 value={newTaskTitles[list.id] ?? ""}
                 onChange={(e) => setNewTaskTitles((prev) => ({ ...prev, [list.id]: e.target.value }))}
               />
-              <button type="submit">Add</button>
+              <button type="submit" className="btn">
+                Add
+              </button>
             </form>
             <ul className="chores-tasks">
               {list.tasks.map((task) => (

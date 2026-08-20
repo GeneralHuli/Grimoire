@@ -25,18 +25,18 @@ export function RecipeViewModal({ recipe, onClose, onEdit }: RecipeViewModalProp
             <h3 className="modal-actions-title">{recipe.title}</h3>
             <button
               type="button"
-              className="settings-save"
+              className="btn btn-lg"
               onClick={() => setSendingToGrocery(true)}
               disabled={recipe.ingredients.length === 0}
             >
               Send to Grocery List
             </button>
             {onEdit && (
-              <button type="button" className="settings-save" onClick={onEdit}>
+              <button type="button" className="btn btn-lg" onClick={onEdit}>
                 Edit
               </button>
             )}
-            <button type="button" className="settings-close" onClick={onClose} aria-label="Close">
+            <button type="button" className="btn btn-icon" onClick={onClose} aria-label="Close">
               ×
             </button>
           </div>

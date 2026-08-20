@@ -1,0 +1,10 @@
+{
+  "name": "voice-commands",
+  "displayName": "Voice Commands",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "voice-commands",
+  "config": {
+    "position": "top-left"
+  }
+}

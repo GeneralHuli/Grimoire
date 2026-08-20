@@ -1,39 +1,135 @@
+/*
+ * Theme tokens: dark values live on bare :root so the app paints dark before any JS runs
+ * (dark is the default, not a fallback) -- [data-theme="light"] overrides them. Most of
+ * the rest of this file uses color-mix(in srgb, currentColor N%, transparent), which
+ * already adapts for free once --grim-text/--grim-bg change; only the handful of raw
+ * `canvas`/`canvastext` uses below need the token swap, since those OS keywords ignore
+ * data-theme entirely. ThemeContext also sets `color-scheme` on the root element
+ * directly (not the static `light dark` this used to be) so native controls follow the
+ * app's explicit choice even when it disagrees with the OS.
+ */
 :root {
-  color-scheme: light dark;
+  --grim-bg: #14161a;
+  --grim-surface: #1c1f24;
+  --grim-surface-2: #262a31;
+  --grim-text: #eef0f2;
+  --grim-border: color-mix(in srgb, var(--grim-text) 20%, transparent);
+  --grim-accent: #6aa8ff;
+  --grim-danger: #e5484d;
+  color-scheme: dark;
   font-family: system-ui, sans-serif;
+  background: var(--grim-bg);
+  color: var(--grim-text);
+}
+
+[data-theme="light"] {
+  --grim-bg: #f6f7f9;
+  --grim-surface: #ffffff;
+  --grim-surface-2: #eef0f2;
+  --grim-text: #16181c;
+  --grim-border: color-mix(in srgb, var(--grim-text) 16%, transparent);
+  color-scheme: light;
 }
 
 body {
   margin: 0;
+  background: var(--grim-bg);
+  color: var(--grim-text);
 }
 
 /*
- * Auto-fit grid: same layout code serves the Pi touchscreen kiosk, phones/tablets
- * (Phase 9), and desktop browsers. Columns collapse to one on narrow viewports
- * without any separate mobile stylesheet.
+ * Buttons & inputs: every Spell composes these instead of redeclaring its own
+ * padding/radius/tint/font, so the whole app shares one button and one input
+ * look. Size/variant modifiers stack onto .btn (e.g. `btn btn-sm`,
+ * `btn btn-lg btn-danger`); .field covers text inputs, selects, and textareas.
  */
-.grimoire-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1rem;
-  padding: 1rem;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  font: inherit;
+  font-size: 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: color-mix(in srgb, currentColor 20%, transparent);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn:disabled:hover {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.btn.active,
+.btn[aria-pressed="true"] {
+  background: color-mix(in srgb, currentColor 25%, transparent);
+  font-weight: 600;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.7rem;
+  font-size: 0.9rem;
+}
+
+.btn-lg {
+  padding: 0.75rem 1.25rem;
+  font-size: 1.05rem;
+}
+
+.btn-icon {
+  padding: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.btn-icon-lg {
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.5rem;
+}
+
+.btn-danger {
+  background: color-mix(in srgb, #d33 20%, transparent);
+}
+
+.btn-danger:hover {
+  background: color-mix(in srgb, #d33 30%, transparent);
+}
+
+.field {
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
+  background: var(--grim-surface);
+  color: var(--grim-text);
+}
+
+.field:focus-visible {
+  outline: 2px solid color-mix(in srgb, currentColor 40%, transparent);
+  outline-offset: 1px;
 }
 
 .spell-card {
   border: 1px solid color-mix(in srgb, currentColor 20%, transparent);
   border-radius: 0.75rem;
   padding: 1rem;
-}
-
-/* Touch-friendly: large tap target, no hover-only affordance. */
-.calendar-connect {
-  display: inline-block;
-  padding: 0.75rem 1.25rem;
-  font-size: 1.1rem;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, currentColor 12%, transparent);
-  text-decoration: none;
-  color: inherit;
 }
 
 .calendar-toolbar {
@@ -49,21 +145,6 @@ body {
 .calendar-view-switch {
   display: flex;
   gap: 0.35rem;
-}
-
-.calendar-toolbar button {
-  padding: 0.5rem 0.85rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  color: inherit;
-  cursor: pointer;
-}
-
-.calendar-view-switch button.active {
-  background: color-mix(in srgb, currentColor 25%, transparent);
-  font-weight: 600;
 }
 
 .calendar-label {
@@ -214,8 +295,8 @@ body {
   flex-direction: column;
   width: min(90vw, 420px);
   max-height: 85vh;
-  background: canvas;
-  color: canvastext;
+  background: var(--grim-surface);
+  color: var(--grim-text);
   border-radius: 1rem;
   padding: 1.5rem;
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
@@ -288,22 +369,6 @@ body {
 
 .chores-add input {
   flex: 1;
-  font-size: 1rem;
-  padding: 0.5rem 0.6rem;
-  border-radius: 0.4rem;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  background: canvas;
-  color: canvastext;
-}
-
-.chores-add button {
-  padding: 0.5rem 0.85rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, currentColor 15%, transparent);
-  color: inherit;
-  cursor: pointer;
 }
 
 .recipes-toolbar {
@@ -313,25 +378,9 @@ body {
   margin-bottom: 1rem;
 }
 
-.recipes-toolbar button {
-  padding: 0.5rem 0.85rem;
-  font-size: 0.95rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  color: inherit;
-  cursor: pointer;
-}
-
 .recipes-search {
   flex: 1;
   min-width: 10rem;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.95rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  background: canvas;
-  color: canvastext;
 }
 
 .modal-body .recipes-search {
@@ -384,21 +433,14 @@ body {
   flex-direction: column;
   width: min(92vw, 480px);
   max-height: 85vh;
-  background: canvas;
-  color: canvastext;
+  background: var(--grim-surface);
+  color: var(--grim-text);
   border-radius: 1rem;
   padding: 1.5rem;
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
 }
 
 .recipe-textarea {
-  font-family: inherit;
-  font-size: 1rem;
-  padding: 0.6rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  background: canvas;
-  color: canvastext;
   resize: vertical;
 }
 
@@ -421,16 +463,6 @@ body {
   color: currentColor;
 }
 
-.recipe-delete {
-  padding: 0.75rem 1.25rem;
-  font-size: 1.05rem;
-  border: none;
-  border-radius: 0.5rem;
-  background: color-mix(in srgb, #d33 20%, transparent);
-  color: inherit;
-  cursor: pointer;
-}
-
 /*
  * Sized for reading at arm's length while cooking, not just skimming. The dialog
  * itself doesn't scroll — the ingredient/step columns each scroll independently
@@ -442,8 +474,8 @@ body {
   flex-direction: column;
   width: min(95vw, 1000px);
   max-height: 88vh;
-  background: canvas;
-  color: canvastext;
+  background: var(--grim-surface);
+  color: var(--grim-text);
   border-radius: 1rem;
   padding: 1.75rem;
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
@@ -479,7 +511,7 @@ body {
   top: 0;
   margin: 0 0 0.5rem;
   padding-bottom: 0.35rem;
-  background: canvas;
+  background: var(--grim-surface);
   font-size: 1.1rem;
 }
 
@@ -645,16 +677,6 @@ body {
   margin-bottom: 0.85rem;
 }
 
-.send-grocery-toolbar button {
-  padding: 0.4rem 0.7rem;
-  font-size: 0.9rem;
-  border: none;
-  border-radius: 0.4rem;
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  color: inherit;
-  cursor: pointer;
-}
-
 .grocery-remove {
   flex-shrink: 0;
   border: none;
@@ -703,7 +725,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 1rem;
-  background: canvas;
+  background: var(--grim-surface);
   border-bottom: 1px solid color-mix(in srgb, currentColor 10%, transparent);
 }
 
@@ -712,16 +734,236 @@ body {
   margin: 0;
 }
 
-.settings-open {
-  font-size: 1.5rem;
-  line-height: 1;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
+/*
+ * Persistent side dock: always-visible icon rail (left edge) for navigating to any
+ * Spell's full-screen view, regardless of whether it's currently placed on the home
+ * grid -- the grid controls what's glanceable, the dock controls what's reachable.
+ */
+.grimoire-body {
+  display: flex;
+  height: calc(100vh - 4.5rem);
+  min-height: 0;
+}
+
+.grimoire-dock {
+  flex-shrink: 0;
+  width: 4.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 0;
+  border-right: 1px solid var(--grim-border);
+  overflow-y: auto;
+}
+
+.grimoire-dock-spells {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.25rem 0;
+}
+
+.grimoire-dock-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.grimoire-main {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.spell-detail-view {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.spell-detail-header {
+  flex-shrink: 0;
+  padding: 1rem;
+  margin-bottom: 0;
+  border-bottom: 1px solid var(--grim-border);
+}
+
+.spell-detail-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/*
+ * Home dashboard: an Android-launcher-style widget grid, fixed at GRID_COLS×GRID_ROWS
+ * (see homeGrid/gridConfig.ts) and capped to the available height with overflow hidden
+ * -- this, not any per-widget scroll trick, is what makes the homepage fit one screen.
+ * Below a narrow/mobile viewport this one rule relaxes to allow scrolling instead of
+ * hard-breaking the layout; full mobile responsiveness stays out of scope for now.
+ */
+.home-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: 1rem;
+  gap: 0.75rem;
+}
+
+.home-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+.home-grid {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+@media (max-width: 700px) {
+  .home-grid {
+    overflow-y: auto;
+  }
+}
+
+.home-grid-cell {
+  border-radius: 0.5rem;
+  border: 1px dashed color-mix(in srgb, currentColor 15%, transparent);
+  pointer-events: none;
+}
+
+.home-grid-cell.valid {
+  background: color-mix(in srgb, #2ea043 35%, transparent);
+  border-color: #2ea043;
+}
+
+.home-grid-cell.invalid {
+  background: color-mix(in srgb, var(--grim-danger) 35%, transparent);
+  border-color: var(--grim-danger);
+}
+
+.widget-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--grim-border);
+  border-radius: 0.75rem;
+  background: var(--grim-surface);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.widget-card.edit-mode {
+  cursor: grab;
+  touch-action: none;
+}
+
+.widget-card.dragging {
+  cursor: grabbing;
+  box-shadow: 0 1rem 2rem rgba(0, 0, 0, 0.4);
+}
+
+.widget-card-controls {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  left: 0.35rem;
+  display: flex;
+  justify-content: space-between;
+  gap: 0.35rem;
+  z-index: 1;
+}
+
+.widget-card-cycle {
   border: none;
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  border-radius: 0.4rem;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.75rem;
+  background: color-mix(in srgb, currentColor 20%, transparent);
   color: inherit;
   cursor: pointer;
+}
+
+.widget-card-remove {
+  flex-shrink: 0;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--grim-danger);
+  color: white;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.widget-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0.75rem;
+}
+
+.widget-card-body.inert {
+  pointer-events: none;
+}
+
+.widget-drawer-dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(90vw, 420px);
+  max-height: 80vh;
+  background: var(--grim-surface);
+  color: var(--grim-text);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+}
+
+.widget-drawer-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.widget-drawer-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: none;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  color: inherit;
+  font: inherit;
+  font-size: 1.05rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.widget-drawer-item-icon {
+  font-size: 1.3rem;
+}
+
+.home-grid-loading {
+  padding: 1rem;
+  opacity: 0.7;
 }
 
 .settings-overlay {
@@ -770,8 +1012,8 @@ body {
   display: flex;
   width: min(90vw, 720px);
   height: min(85vh, 560px);
-  background: canvas;
-  color: canvastext;
+  background: var(--grim-surface);
+  color: var(--grim-text);
   border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
@@ -831,7 +1073,7 @@ body {
   position: sticky;
   top: 0;
   z-index: 1;
-  background: canvas;
+  background: var(--grim-surface);
   padding-bottom: 0.75rem;
   margin-bottom: 1rem;
   border-bottom: 1px solid color-mix(in srgb, currentColor 12%, transparent);
@@ -839,14 +1081,6 @@ body {
 
 .settings-close {
   flex-shrink: 0;
-  width: 2.5rem;
-  height: 2.5rem;
-  font-size: 1.25rem;
-  border: none;
-  border-radius: 50%;
-  background: color-mix(in srgb, currentColor 12%, transparent);
-  color: inherit;
-  cursor: pointer;
 }
 
 .settings-panel h3 {
@@ -861,14 +1095,9 @@ body {
   font-size: 0.95rem;
 }
 
-.settings-field input,
-.settings-field select {
+.settings-field .field {
   font-size: 1.1rem;
   padding: 0.6rem;
-  border-radius: 0.5rem;
-  border: 1px solid color-mix(in srgb, currentColor 25%, transparent);
-  background: canvas;
-  color: canvastext;
 }
 
 .settings-field input[type="checkbox"] {
@@ -877,12 +1106,1297 @@ body {
   align-self: flex-start;
 }
 
-.settings-save {
-  padding: 0.75rem 1.25rem;
-  font-size: 1.05rem;
-  border: none;
+.voice-command-input-row {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.voice-command-input-row input {
+  flex: 1;
+}
+
+.voice-command-input-row button {
+  flex-shrink: 0;
+}
+
+.voice-command-mic {
+  font-size: 1.1rem;
+}
+
+.voice-command-mic.listening {
+  background: color-mix(in srgb, #d33 35%, transparent);
+}
+
+.voice-command-mute {
+  font-size: 1.1rem;
+}
+
+.voice-command-status {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.voice-command-confirmation {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+}
+
+.voice-command-clarification {
+  margin: 0.5rem 0 0;
+  font-size: 0.95rem;
+  color: #d33;
+}
+
+.voice-command-hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.smart-home-section {
+  margin-bottom: 1.25rem;
+}
+
+.smart-home-section h3 {
+  font-size: 1rem;
+  margin: 0 0 0.6rem;
+}
+
+.smart-home-devices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.smart-home-tiles {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.85rem;
+}
+
+.smart-home-tile {
+  display: flex;
+}
+
+.smart-home-tile-anchor {
+  position: relative;
+  display: flex;
+}
+
+.smart-home-device {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.smart-home-device-camera {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.smart-home-camera {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.smart-home-camera-img {
+  width: 100%;
   border-radius: 0.5rem;
-  background: color-mix(in srgb, currentColor 15%, transparent);
-  color: inherit;
+  background: color-mix(in srgb, currentColor 10%, transparent);
+}
+
+/* --- Level slider: light brightness / fan speed / cover position --- */
+
+.smart-home-slider {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 6.5rem;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.smart-home-slider-track {
+  position: relative;
+  width: 100%;
+  height: 11rem;
+  border-radius: 1.5rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  border: 1px solid var(--grim-border);
+  overflow: hidden;
+  cursor: grab;
+  touch-action: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.smart-home-slider.disabled .smart-home-slider-track {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.smart-home-slider-fill {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    to top,
+    var(--slider-color, var(--grim-accent)),
+    color-mix(in srgb, var(--slider-color, var(--grim-accent)) 55%, transparent)
+  );
+  transition: height 0.15s ease;
+}
+
+.smart-home-slider-track:active .smart-home-slider-fill {
+  transition: none;
+}
+
+.smart-home-slider-icon {
+  position: relative;
+  z-index: 1;
+  font-size: 1.4rem;
+  margin-top: 0.85rem;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.35));
+}
+
+.smart-home-slider-value {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+  margin-bottom: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+.smart-home-slider-track.active .smart-home-slider-value {
+  color: #fff;
+}
+
+.smart-home-slider-label {
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.smart-home-slider-sublabel {
+  font-size: 0.75rem;
+  opacity: 0.65;
+  text-align: center;
+}
+
+/* --- Color / warmth picker popover (long-press a light's slider) --- */
+
+.smart-home-color-picker-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 4;
+  background: transparent;
+}
+
+.smart-home-color-picker {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 12rem;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: var(--grim-surface);
+  border: 1px solid var(--grim-border);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.smart-home-color-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.smart-home-color-picker-close {
+  width: 1.6rem;
+  height: 1.6rem;
+  font-size: 1rem;
+}
+
+.smart-home-color-strip {
+  height: 1.5rem;
+  border-radius: 0.75rem;
+  touch-action: none;
   cursor: pointer;
+  border: 1px solid var(--grim-border);
+}
+
+.smart-home-color-strip-color {
+  background: linear-gradient(
+    to right,
+    hsl(0, 85%, 55%),
+    hsl(60, 85%, 55%),
+    hsl(120, 85%, 55%),
+    hsl(180, 85%, 55%),
+    hsl(240, 85%, 55%),
+    hsl(300, 85%, 55%),
+    hsl(360, 85%, 55%)
+  );
+}
+
+.smart-home-color-strip-temp {
+  background: linear-gradient(to right, #ff9329, #ffe1b8, #d6e6ff, #7fb3ff);
+}
+
+.smart-home-color-presets {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  gap: 0.3rem;
+}
+
+.smart-home-color-swatch {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1px solid var(--grim-border);
+  padding: 0;
+  cursor: pointer;
+}
+
+/* --- Lock: fancy padlock button with a swinging shackle --- */
+
+.smart-home-lock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+  width: 6.5rem;
+}
+
+.smart-home-lock-btn {
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  transition: background 0.2s ease;
+}
+
+.smart-home-lock-btn:disabled {
+  cursor: not-allowed;
+}
+
+.smart-home-lock-icon {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.smart-home-lock-shackle {
+  stroke: currentColor;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+
+.smart-home-lock-shackle-open {
+  opacity: 0;
+  transform: translateY(3px);
+}
+
+.smart-home-lock-body {
+  fill: currentColor;
+}
+
+.smart-home-lock-keyhole {
+  fill: var(--grim-surface);
+}
+
+.smart-home-lock-btn.is-locked {
+  color: #3ecf8e;
+  background: color-mix(in srgb, #3ecf8e 16%, transparent);
+}
+
+.smart-home-lock-btn.is-unlocked {
+  color: #f2a93b;
+  background: color-mix(in srgb, #f2a93b 16%, transparent);
+}
+
+.smart-home-lock-btn.is-unlocked .smart-home-lock-shackle-closed {
+  opacity: 0;
+  transform: translateY(-3px);
+}
+
+.smart-home-lock-btn.is-unlocked .smart-home-lock-shackle-open {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.smart-home-lock-btn.is-jammed {
+  color: var(--grim-danger);
+  background: color-mix(in srgb, var(--grim-danger) 18%, transparent);
+}
+
+.smart-home-lock-btn.is-moving {
+  animation: smart-home-lock-pulse 1s ease-in-out infinite;
+}
+
+@keyframes smart-home-lock-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.smart-home-lock-label {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* --- Thermostat: Nest-style drag-around arc dial --- */
+
+.smart-home-thermostat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.smart-home-thermostat-dial {
+  position: relative;
+  width: 11rem;
+  height: 11rem;
+  touch-action: none;
+  cursor: grab;
+}
+
+.smart-home-thermostat-dial.disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.smart-home-thermostat-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.smart-home-thermostat-track {
+  stroke: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.smart-home-thermostat-knob {
+  fill: var(--grim-surface);
+  stroke: currentColor;
+  stroke-width: 2;
+}
+
+.smart-home-thermostat-readout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.smart-home-thermostat-target {
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.smart-home-thermostat-current {
+  font-size: 0.85rem;
+  opacity: 0.7;
+}
+
+.smart-home-thermostat-mode {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-top: 0.15rem;
+}
+
+.smart-home-thermostat-label {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+/* --- Switch: sliding pill toggle, flipped up/down (up = on) with the label below --
+ * width matches the lock/slider controls (6.5rem == BASELINE_CELL_PX in
+ * SmartHomeGlance.tsx) so a switch lines up with its neighbors at the compact grid's
+ * baseline scale. The label wraps instead of clipping so a long device name stays
+ * inside that same width budget rather than overflowing into a neighboring tile. */
+
+.smart-home-switch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  width: 6.5rem;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+
+.smart-home-switch-track {
+  position: relative;
+  width: 1.4rem;
+  height: 2.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 20%, transparent);
+  flex-shrink: 0;
+  transition: background 0.2s ease;
+}
+
+.smart-home-switch.on .smart-home-switch-track {
+  background: var(--grim-accent);
+}
+
+.smart-home-switch-knob {
+  position: absolute;
+  left: 0.15rem;
+  bottom: 0.15rem;
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.smart-home-switch.on .smart-home-switch-knob {
+  transform: translateY(-1rem);
+}
+
+.smart-home-switch-label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  max-width: 100%;
+  font-size: 0.85rem;
+  text-align: center;
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+/* --- Cover: open/stop/close button group --- */
+
+.smart-home-cover {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.smart-home-cover-group {
+  display: flex;
+  gap: 0.3rem;
+  padding: 0.3rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+
+.smart-home-cover-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  font-size: 0.9rem;
+}
+
+.smart-home-cover-label {
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.smart-home-cover-state {
+  font-size: 0.75rem;
+  opacity: 0.65;
+}
+
+.weather-current {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.weather-current-icon {
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.weather-current-temp {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.1;
+}
+
+.weather-current-label {
+  opacity: 0.8;
+}
+
+.weather-current-feels {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.weather-hourly-strip {
+  display: flex;
+  gap: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.weather-hour {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 0.85rem;
+}
+
+.weather-hour-icon {
+  font-size: 1.3rem;
+}
+
+.weather-daily-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.weather-daily-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 0.95rem;
+}
+
+.weather-daily-date {
+  width: 3rem;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.weather-daily-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.weather-daily-precip {
+  flex-shrink: 0;
+  opacity: 0.7;
+  font-size: 0.85rem;
+}
+
+.weather-daily-range {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.smart-home-camera button {
+  align-self: flex-start;
+}
+
+/* Shared building blocks used by multiple Spells' home-grid glance widgets. */
+.glance-empty {
+  margin: 0;
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+.glance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+.glance-list-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.glance-list-time {
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+
+.glance-list-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.glance-list-meta {
+  flex-shrink: 0;
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+
+.glance-checkable .grocery-item-manual {
+  font-size: 0.9rem;
+}
+
+.glance-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+}
+
+.glance-stat-value {
+  font-size: 1.8rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.glance-stat-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+/* Calendar mini-month glance */
+.mini-month-wrap {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.mini-month {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.15rem;
+  height: 100%;
+}
+
+.mini-month-weekday {
+  text-align: center;
+  font-size: 0.65rem;
+  opacity: 0.6;
+}
+
+.mini-month-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+  width: 100%;
+  min-width: 0;
+  border: none;
+  border-radius: 0.3rem;
+  padding: 0.1rem 0.05rem;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mini-month-day:hover {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+}
+
+.mini-month-day.outside {
+  opacity: 0.3;
+}
+
+.mini-month-day.today .mini-month-day-number {
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 25%, transparent);
+  padding: 0 0.3rem;
+}
+
+.mini-month-day.selected {
+  background: color-mix(in srgb, var(--grim-accent) 20%, transparent);
+  outline: 1px solid var(--grim-accent);
+}
+
+.mini-month-day-number {
+  font-size: 0.7rem;
+}
+
+.mini-month-day-title {
+  width: 100%;
+  font-size: 0.55rem;
+  line-height: 1.1;
+  opacity: 0.85;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mini-month-day-more {
+  font-size: 0.5rem;
+  opacity: 0.6;
+}
+
+/* Fixed-position day-detail panel popped out by CalendarMiniMonthGlance -- deliberately
+ * `position: fixed` (not absolute) so it escapes .widget-card's overflow:hidden and can
+ * visually bleed past the widget's own right edge; positioned via measured
+ * getBoundingClientRect rather than CSS alone. See CalendarGlance.tsx. */
+.mini-month-overlay {
+  position: fixed;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  background: var(--grim-surface);
+  color: var(--grim-text);
+  border-radius: 0 0.75rem 0.75rem 0;
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+  padding: 0.6rem;
+  overflow-y: auto;
+  min-width: 8rem;
+}
+
+.mini-month-overlay-close {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+}
+
+.mini-month-day-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 0;
+}
+
+.mini-month-day-detail-title {
+  margin: 0;
+  padding-right: 1.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.mini-month-day-detail-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow-y: auto;
+  font-size: 0.75rem;
+}
+
+.mini-month-day-detail-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+/* Calendar "Month + Day" glance -- permanently reserves the panel CalendarMiniMonthGlance
+ * only pops out on demand; see HOME_WIDGET_VARIANTS' month-day entry. */
+.calendar-month-day-glance {
+  display: flex;
+  height: 100%;
+  gap: 0.6rem;
+}
+
+.calendar-month-day-glance-grid {
+  flex: 3;
+  min-width: 0;
+  height: 100%;
+}
+
+.calendar-month-day-glance-grid .mini-month {
+  height: 100%;
+}
+
+.calendar-month-day-glance-detail {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding-left: 0.6rem;
+  border-left: 1px solid var(--grim-border);
+  overflow-y: auto;
+}
+
+/* Chores board glance */
+.chores-glance-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 0.5rem;
+  height: 100%;
+  overflow: hidden;
+}
+
+.chores-glance-list-header {
+  font-size: 0.8rem;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-bottom: 0.2rem;
+}
+
+/* Recipes spotlight glance */
+.recipes-spotlight-glance {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.recipes-spotlight-label {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.recipes-spotlight-title {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.recipes-spotlight-rating {
+  font-size: 0.85rem;
+}
+
+/* Meal plan week glance */
+.meal-plan-glance-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 0.4rem;
+  height: 100%;
+}
+
+.meal-plan-glance-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.75rem;
+  overflow: hidden;
+}
+
+.meal-plan-glance-day-label {
+  opacity: 0.6;
+}
+
+.meal-plan-glance-day-title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Voice commands shortcut glance */
+.voice-command-glance {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  height: 100%;
+  text-align: center;
+}
+
+.voice-command-glance-icon {
+  font-size: 1.6rem;
+}
+
+/* Smart home board glance -- same tile controls as the full view, arranged on their own
+ * small grid (independent of the home dashboard's outer grid) that always fills its
+ * widget card with no scrolling: tracks are `1fr` so the grid itself is fully
+ * responsive, and a ResizeObserver-measured cellPx (SmartHomeGlance.tsx) drives a
+ * uniform transform:scale() on every control plus the drag math. Mirrors
+ * web/src/homeGrid's own edit-mode/drag-cell/remove-button look so the interaction
+ * feels like the same idea at a smaller scale, not a different mechanism. */
+.smart-home-glance-board {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  gap: 0.3rem;
+}
+
+.smart-home-glance-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.smart-home-glance-gear {
+  font-size: 1.1rem;
+}
+
+.smart-home-glance-grid {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  overflow: hidden;
+}
+
+.smart-home-glance-cell {
+  border-radius: 0.4rem;
+  border: 1px dashed color-mix(in srgb, currentColor 15%, transparent);
+  pointer-events: none;
+  margin: 2px;
+}
+
+.smart-home-glance-cell.valid {
+  background: color-mix(in srgb, #2ea043 35%, transparent);
+  border-color: #2ea043;
+}
+
+.smart-home-glance-cell.invalid {
+  background: color-mix(in srgb, var(--grim-danger) 35%, transparent);
+  border-color: var(--grim-danger);
+}
+
+.smart-home-glance-tile {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.smart-home-glance-tile.edit-mode {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.smart-home-glance-tile.dragging {
+  cursor: grabbing;
+}
+
+.smart-home-glance-tile.dragging .smart-home-glance-tile-content {
+  filter: drop-shadow(0 0.5rem 1rem rgba(0, 0, 0, 0.4));
+}
+
+.smart-home-glance-tile-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.smart-home-glance-tile-content.inert {
+  pointer-events: none;
+}
+
+.smart-home-glance-tile-remove {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 21;
+  width: 1.3rem;
+  height: 1.3rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--grim-danger);
+  color: #fff;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Compact-view drawer -- a palette of not-yet-placed devices, dragged out onto the grid.
+ * No backdrop: the grid behind it has to stay clickable (see SmartHomeGlanceDrawer.tsx). */
+.smart-home-glance-drawer {
+  position: fixed;
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  background: var(--grim-surface);
+  color: var(--grim-text);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.35);
+}
+
+.smart-home-glance-drawer-left,
+.smart-home-glance-drawer-right {
+  top: 0;
+  bottom: 0;
+  width: min(85vw, 18rem);
+}
+
+.smart-home-glance-drawer-left {
+  left: 0;
+  border-radius: 0 1rem 1rem 0;
+}
+
+.smart-home-glance-drawer-right {
+  right: 0;
+  border-radius: 1rem 0 0 1rem;
+}
+
+.smart-home-glance-drawer-top,
+.smart-home-glance-drawer-bottom {
+  left: 0;
+  right: 0;
+  height: min(70vh, 20rem);
+}
+
+.smart-home-glance-drawer-top {
+  top: 0;
+  border-radius: 0 0 1rem 1rem;
+}
+
+.smart-home-glance-drawer-bottom {
+  bottom: 0;
+  border-radius: 1rem 1rem 0 0;
+}
+
+.smart-home-glance-drawer-header {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--grim-border);
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.smart-home-glance-drawer-close {
+  width: 1.8rem;
+  height: 1.8rem;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.smart-home-glance-drawer-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.smart-home-glance-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.6rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+
+.smart-home-glance-chip-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.smart-home-glance-chip-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.smart-home-glance-chip-size {
+  flex-shrink: 0;
+  opacity: 0.6;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.smart-home-glance-insert-ghost {
+  position: fixed;
+  z-index: 62;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  padding: 0.4rem 0.7rem;
+  border-radius: 0.5rem;
+  background: var(--grim-surface);
+  border: 1px solid var(--grim-danger);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.35);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.smart-home-glance-insert-ghost.valid {
+  border-color: #2ea043;
+}
+
+/* Weather glance widgets */
+.weather-glance-small {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  height: 100%;
+  text-align: center;
+}
+
+.weather-glance-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.weather-glance-temp {
+  font-size: 1.3rem;
+  font-weight: 600;
+}
+
+.weather-glance-location {
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.weather-glance-large {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  height: 100%;
+}
+
+.weather-glance-large-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.weather-glance-large-header .weather-glance-temp {
+  font-size: 1.6rem;
+}
+
+.weather-glance-label {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+.weather-glance-hilo {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.weather-glance-hourly {
+  margin: 0;
+  padding-bottom: 0;
+  gap: 0.4rem;
+}
+
+.weather-glance-hourly .weather-hour {
+  padding: 0.3rem 0.5rem;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.weather-glance-hourly .weather-hour-icon {
+  font-size: 1.3rem;
+}
+
+.weather-glance-daily-cards {
+  display: flex;
+  gap: 0.3rem;
+  flex: 1;
+  min-height: 0;
+}
+
+.weather-glance-daily-card {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.2rem;
+  border-radius: 0.4rem;
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  font-size: 0.95rem;
+  text-align: center;
+  overflow: hidden;
+}
+
+.weather-glance-daily-card-label {
+  font-weight: 600;
+}
+
+.weather-glance-daily-card-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.weather-glance-daily-card-range {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.weather-glance-daily-card-precip {
+  opacity: 0.7;
+  font-size: 0.8rem;
 }

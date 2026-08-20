@@ -51,7 +51,7 @@ export function SpellSettingsPanel({ scope }: SpellSettingsPanelProps) {
   return (
     <div className="settings-panel">
       <div className="settings-panel-actions">
-        <button className="settings-save" onClick={save}>
+        <button className="btn btn-lg" onClick={save}>
           {saved ? "Saved" : "Save"}
         </button>
       </div>
@@ -77,8 +77,8 @@ function SettingInput({
   }
   if (typeof value === "number") {
     return (
-      <input type="number" value={value} onChange={(e) => onChange(Number(e.target.value))} />
+      <input type="number" className="field" value={value} onChange={(e) => onChange(Number(e.target.value))} />
     );
   }
-  return <input type="text" value={value} onChange={(e) => onChange(e.target.value)} />;
+  return <input type="text" className="field" value={value} onChange={(e) => onChange(e.target.value)} />;
 }

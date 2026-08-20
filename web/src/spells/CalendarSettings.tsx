@@ -65,13 +65,14 @@ export function CalendarSettings() {
   return (
     <div className="settings-panel">
       <div className="settings-panel-actions">
-        <button className="settings-save" onClick={save}>
+        <button className="btn btn-lg" onClick={save}>
           {saved ? "Saved" : "Save"}
         </button>
       </div>
       <label className="settings-field">
         Calendar to display
         <select
+          className="field"
           value={settings.calendarId ?? "primary"}
           onChange={(e) => update("calendarId", e.target.value)}
         >
@@ -86,6 +87,7 @@ export function CalendarSettings() {
       <label className="settings-field">
         Default view
         <select
+          className="field"
           value={settings.defaultView ?? "month"}
           onChange={(e) => update("defaultView", e.target.value as CalendarSettingsValues["defaultView"])}
         >

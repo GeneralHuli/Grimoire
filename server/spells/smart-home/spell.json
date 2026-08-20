@@ -1,0 +1,11 @@
+{
+  "name": "smart-home",
+  "displayName": "Smart Home",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "smart-home",
+  "config": {
+    "position": "top-left",
+    "glanceLayout": []
+  }
+}

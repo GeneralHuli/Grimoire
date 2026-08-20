@@ -78,7 +78,7 @@ export function CalendarSpell() {
       <div className="spell-card">
         <h2>Family Calendar</h2>
         <p>Needs a connected Google Account.</p>
-        <a className="calendar-connect" href="/api/spells/google-account/auth/start">
+        <a className="btn btn-lg" href="/api/spells/google-account/auth/start">
           Sign in with Google
         </a>
       </div>
@@ -90,13 +90,13 @@ export function CalendarSpell() {
       <h2>Family Calendar</h2>
       <div className="calendar-toolbar">
         <div className="calendar-nav">
-          <button type="button" onClick={() => shift(-1)} aria-label="Previous">
+          <button type="button" className="btn" onClick={() => shift(-1)} aria-label="Previous">
             ‹
           </button>
-          <button type="button" onClick={() => setAnchor(startOfDay(new Date()))}>
+          <button type="button" className="btn" onClick={() => setAnchor(startOfDay(new Date()))}>
             Today
           </button>
-          <button type="button" onClick={() => shift(1)} aria-label="Next">
+          <button type="button" className="btn" onClick={() => shift(1)} aria-label="Next">
             ›
           </button>
         </div>
@@ -106,7 +106,7 @@ export function CalendarSpell() {
             <button
               key={mode}
               type="button"
-              className={mode === view ? "active" : undefined}
+              className={mode === view ? "btn active" : "btn"}
               onClick={() => switchView(mode)}
             >
               {mode[0].toUpperCase() + mode.slice(1)}

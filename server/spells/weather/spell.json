@@ -1,0 +1,13 @@
+{
+  "name": "weather",
+  "displayName": "Weather",
+  "version": "0.1.0",
+  "backend": "./index.ts",
+  "frontend": "weather",
+  "config": {
+    "latitude": null,
+    "longitude": null,
+    "locationName": "",
+    "units": "us"
+  }
+}

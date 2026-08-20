@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
+import { useTheme } from "../appState/ThemeContext";
 
 interface GeneralSettings {
   familyName?: string;
-  theme?: "system" | "light" | "dark";
 }
 
 export function GeneralSettingsPanel() {
+  const { choice, setChoice } = useTheme();
   const [settings, setSettings] = useState<GeneralSettings>({});
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -38,7 +39,7 @@ export function GeneralSettingsPanel() {
   return (
     <div className="settings-panel">
       <div className="settings-panel-actions">
-        <button className="settings-save" onClick={save}>
+        <button className="btn btn-lg" onClick={save}>
           {saved ? "Saved" : "Save"}
         </button>
       </div>
@@ -46,19 +47,17 @@ export function GeneralSettingsPanel() {
         Family name
         <input
           type="text"
+          className="field"
           value={settings.familyName ?? ""}
           onChange={(e) => update("familyName", e.target.value)}
         />
       </label>
       <label className="settings-field">
         Theme
-        <select
-          value={settings.theme ?? "system"}
-          onChange={(e) => update("theme", e.target.value as GeneralSettings["theme"])}
-        >
-          <option value="system">System</option>
-          <option value="light">Light</option>
+        <select className="field" value={choice} onChange={(e) => setChoice(e.target.value as typeof choice)}>
           <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="system">System</option>
         </select>
       </label>
     </div>
