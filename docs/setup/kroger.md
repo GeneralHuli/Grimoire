@@ -23,8 +23,8 @@ Meyer" action.
 2. Copy the generated **Client ID** and **Client secret** into `server/.env`
    (`KROGER_CLIENT_ID`, `KROGER_CLIENT_SECRET`). Like the Google credentials, these
    identify the Grimoire app itself, not any one shopper — the only Kroger-related
-   values safe to store as a static k8s Secret (Phase 8). The shopper's own cart access
-   is a separate matter, covered below.
+   values safe to store as a static prod `.env` value (Phase 8). The shopper's own cart
+   access is a separate matter, covered below.
 3. Start the server, then visit `/api/spells/retail-kroger/auth/start` (or click
    "Connect Fred Meyer Account" in the Fred Meyer / Kroger settings tab) — it redirects
    to Kroger's consent screen requesting the `cart.basic:write` scope, then back to the

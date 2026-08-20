@@ -1,9 +1,9 @@
 # Grimoire Roadmap
 
 Grimoire is a family aid/assistant web app built from modular features ("Spells") loaded
-like MagicMirror modules. The app itself runs as a Kubernetes workload on a Dell server
-(Proxmox host); a Raspberry Pi 3B with a touchscreen is one client endpoint (kiosk mode),
-alongside a mobile-friendly responsive view for phones/tablets.
+like MagicMirror modules. The app itself runs as a Docker Compose stack inside a Proxmox
+LXC container on a Dell server; a Raspberry Pi 3B with a touchscreen is one client
+endpoint (kiosk mode), alongside a mobile-friendly responsive view for phones/tablets.
 
 Phases are sequential but each is scoped to ship something usable on its own.
 
@@ -22,7 +22,7 @@ Phases are sequential but each is scoped to ship something usable on its own.
 ## Phase 1 — Calendar Spell + shared Google sign-in — **Done**
 - Standalone `google-account` Spell: one "Sign in with Google" flow requesting every
   scope a dependent Spell needs (Calendar now, Tasks below) in a single consent screen;
-  refresh token stored encrypted at rest, never in a ConfigMap/Secret
+  refresh token stored encrypted at rest, never in a container env file or Compose config
 - Calendar Spell declares `requires: ["google-account"]` and reuses that connection —
   no separate OAuth flow of its own
 - Read/write against Google Calendar API; user can pick which of the account's calendars
@@ -137,15 +137,23 @@ Phases are sequential but each is scoped to ship something usable on its own.
 - Goal: "Hey Google, ask [device name] to add milk to the list" style commands routed to
   the relevant Spell's action handler
 
-## Phase 8 — Kubernetes Deployment (Proxmox / Dell server) — **Not started**
-- Cluster target is the Dell server under Proxmox, not the Pi — the Pi is a client only,
-  so no on-device resource constraints drive the manifest design
-- Move from Docker Compose (dev) to the k8s cluster (k3s/k0s or full k8s — TBD based on
-  what's already running on the Proxmox host)
-- Manifests: Deployment, Service, PVC (SQLite file persistence — this is where the
-  encrypted Google refresh token lives), ConfigMap, Secrets (OAuth *client*
-  IDs/secrets and other static API keys only — never a user's OAuth token)
-- Ingress for LAN access from family devices (Pi, phones, laptops)
+## Phase 8 — Proxmox LXC Deployment — **Not started**
+- Deployment target is an unprivileged LXC container on the Proxmox-hosted Dell server,
+  not a Kubernetes cluster — right-sized for a single-family, single-node app with no
+  need for orchestration or replicas
+- The LXC runs Docker + Docker Compose internally, promoting the same
+  `docker/docker-compose.yml` and container images already built for dev — no separate
+  manifest format to build or maintain
+- Requires nesting enabled on the container so Docker can run inside it:
+  `features: nesting=1,keyctl=1` (Proxmox GUI: Options → Features, or
+  `pct set <vmid> --features nesting=1,keyctl=1`)
+- A prod compose override swaps the dev bind-mounts for a real `.env` (static secrets
+  only — OAuth *client* IDs/secrets and other API keys, never a user's OAuth token) and
+  a named Docker volume for the SQLite file (this is where the encrypted Google refresh
+  token actually lives)
+- LAN access from family devices (Pi, phones, laptops) via the LXC's own LAN IP/hostname
+  — no ingress controller needed; a simple reverse proxy (nginx/Caddy) is optional if
+  TLS termination is wanted later
 
 ## Phase 9 — Mobile-Friendly Web App — **Not started**
 - Responsive layout pass so every Spell's UI works on phone/tablet viewports, not just

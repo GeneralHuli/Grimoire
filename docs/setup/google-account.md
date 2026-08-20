@@ -20,9 +20,9 @@ Account tab in Settings (or its dashboard card), and every dependent Spell picks
 5. Copy the generated **Client ID** and **Client secret** into `server/.env`
    (`GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`). These identify the Grimoire app itself,
    not any one user — they're the only Google-related values safe to store as a static
-   k8s Secret (Phase 8). The resulting refresh token is a different matter: it's obtained
-   through the sign-in flow below and stored encrypted in SQLite, never in a
-   ConfigMap/Secret.
+   prod `.env` value (Phase 8). The resulting refresh token is a different matter: it's
+   obtained through the sign-in flow below and stored encrypted in SQLite, never in a
+   container env file or Compose config.
 6. Generate `GRIMOIRE_ENCRYPTION_KEY`: `openssl rand -hex 32`.
 7. Start the server, then visit `/api/spells/google-account/auth/start` in a browser (or
    click "Sign in with Google" on the Google Account card/settings tab) — it redirects to

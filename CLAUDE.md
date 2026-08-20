@@ -106,17 +106,19 @@ It requests every scope a dependent Spell needs (Calendar and Tasks, for the Cal
 Chores Spells) in one consent screen, and exposes `getAuthorizedClient()` for other Spells to
 build their own Google API clients from. The refresh token lives encrypted
 (AES-256-GCM, `server/src/secretBox.ts`) in SQLite (`google_account_tokens` table) —
-never in a k8s ConfigMap/Secret. Only the static `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
-(the app's own OAuth client identity, not any user's) are meant for a Secret once Phase 8
-happens. Any Spell needing a Google API declares `"requires": ["google-account"]` in its
+never in a container env file or Compose config. Only the static
+`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` (the app's own OAuth client identity, not any
+user's) are meant to live in the prod `.env` once Phase 8 happens. Any Spell needing a Google API declares `"requires": ["google-account"]` in its
 manifest.
 
 ### Deployment topology
 
-The app (`server` + `web`) is meant to run as a Kubernetes workload on a Proxmox-hosted
-Dell server — not on the Raspberry Pi. The Pi (with a touchscreen) is a kiosk client
-only, alongside a planned mobile-responsive web view; see the topology diagram in
-`docs/ARCHITECTURE.md`. This is why the CSS layout (`.grimoire-grid`, an auto-fit grid)
+The app (`server` + `web`) is meant to run via Docker Compose inside an unprivileged LXC
+container on a Proxmox-hosted Dell server — not on the Raspberry Pi, and not a
+Kubernetes cluster (overkill for a single-family, single-node app). The LXC needs
+nesting enabled (`features: nesting=1,keyctl=1`) so Docker can run inside it. The Pi
+(with a touchscreen) is a kiosk client only, alongside a planned mobile-responsive web
+view; see the topology diagram in `docs/ARCHITECTURE.md`. This is why the CSS layout (`.grimoire-grid`, an auto-fit grid)
 is built to serve kiosk, mobile, and desktop viewports from the same code rather than
 assuming Pi-class resource constraints on the server side.
 

@@ -4,7 +4,7 @@ A family aid/assistant web app: shared calendar, chores, meal planning, recipes,
 grocery lists, built from modular features ("Spells") that plug into the core app like
 MagicMirror modules.
 
-- **Server**: runs on a Kubernetes cluster on a Proxmox-hosted Dell server
+- **Server**: runs via Docker Compose inside a Proxmox LXC container on a Dell server
 - **Clients**: a Raspberry Pi 3B + touchscreen running Chromium in kiosk mode, plus a
   mobile-friendly responsive web app for phones/tablets
 
@@ -28,7 +28,6 @@ docker compose -f docker/docker-compose.yml up --build
 server/   Node/TypeScript API + Spell (module) loader
 web/      React + TypeScript frontend
 spells    Modules live in server/spells, one directory per Spell
-docker/   Dev Dockerfiles + docker-compose.yml
-k8s/      Kubernetes manifests for the Proxmox cluster (Phase 8+)
+docker/   Dockerfiles + docker-compose.yml (also promoted to the Proxmox LXC in prod)
 docs/     Roadmap, architecture, decisions
 ```

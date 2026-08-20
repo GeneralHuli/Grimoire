@@ -6,13 +6,14 @@
                         ┌─────────────────────────────┐
                         │  Proxmox host (Dell server)  │
                         │  ┌────────────────────────┐  │
-                        │  │  Kubernetes cluster      │  │
+                        │  │  LXC container           │  │
+                        │  │  (Docker Compose)        │  │
                         │  │  - grimoire-server (API) │  │
                         │  │  - grimoire-web (static) │  │
-                        │  │  - SQLite on PVC         │  │
+                        │  │  - SQLite on named volume│  │
                         │  └────────────────────────┘  │
                         └───────────────┬──────────────┘
-                                        │ LAN (ingress)
+                                        │ LAN
               ┌─────────────────────────┼─────────────────────────┐
               │                         │                         │
       ┌───────▼────────┐       ┌────────▼────────┐       ┌────────▼────────┐
@@ -39,8 +40,8 @@ Grimoire/
   web/               React + TypeScript frontend (Vite)
     src/
       spells/           Frontend widget per Spell, dynamically rendered by manifest
-  docker/            Dockerfiles + docker-compose.yml for local dev
-  k8s/               Deployment manifests for the Proxmox cluster (Phase 8)
+  docker/            Dockerfiles + docker-compose.yml — also promoted to the Proxmox
+                     LXC container for prod (Phase 8), no separate manifest format
   docs/              Roadmap, architecture, decisions
 ```
 
@@ -102,12 +103,13 @@ separated) to get a ready-to-use OAuth2 client, or `null` if no account is linke
 It has no home-page card of its own — only a Settings tab for linking/unlinking the
 account.
 
-The refresh token this produces is **never** stored as a k8s ConfigMap/Secret value — it
-only ever lives encrypted (AES-256-GCM, see `secretBox.ts`) in the `google_account_tokens`
-SQLite table, written by the interactive `/auth/callback` flow. The only Google-related
-values that belong in a k8s Secret (Phase 8) are `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`
-— they identify the Grimoire app's own OAuth client registration, not any user's session,
-so they're static config rather than a per-account secret.
+The refresh token this produces is **never** stored in the prod `.env` file or any
+Compose config — it only ever lives encrypted (AES-256-GCM, see `secretBox.ts`) in the
+`google_account_tokens` SQLite table, written by the interactive `/auth/callback` flow.
+The only Google-related values that belong in the prod `.env` (Phase 8) are
+`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` — they identify the Grimoire app's own OAuth
+client registration, not any user's session, so they're static config rather than a
+per-account secret.
 
 ## Frontend conventions
 
@@ -153,7 +155,8 @@ checklist rather than everything landing in the list automatically.
 
 ## Data storage
 
-SQLite (via `better-sqlite3`), single file on a PVC in Phase 8. Fits the "lightweight
+SQLite (via `better-sqlite3`), single file on a named Docker volume inside the Phase 8
+LXC container. Fits the "lightweight
 database" requirement and needs no separate DB server. If a Spell's access patterns
 outgrow SQLite later (e.g. heavy concurrent writes), that Spell can swap its own storage
 without affecting others, since each Spell owns its own tables.
@@ -177,5 +180,5 @@ Albertsons descoped) is done — see `docs/ROADMAP.md` Phase 6 for the resulting
 ## Deployment environments
 
 - **Dev**: Docker Compose on the dev machine (Docker Desktop), hot-reload for server + web
-- **Prod**: Kubernetes on the Proxmox-hosted Dell server (Phase 8), same container images
-  built for dev, promoted via CI
+- **Prod**: Docker Compose inside an unprivileged Proxmox LXC container on the Dell
+  server (Phase 8), same container images built for dev, promoted via CI
