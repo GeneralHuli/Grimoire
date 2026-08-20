@@ -363,19 +363,25 @@ Agreed build order: **Part 1 → Part 2 → Part 3.**
 - Deployment target is an unprivileged LXC container on the Proxmox-hosted Dell server,
   not a Kubernetes cluster — right-sized for a single-family, single-node app with no
   need for orchestration or replicas
-- The LXC runs Docker + Docker Compose internally, promoting the same
-  `docker/docker-compose.yml` and container images already built for dev — no separate
-  manifest format to build or maintain
+- The LXC runs Docker + Docker Compose internally, promoting the exact same
+  `docker/docker-compose.yml` and Dockerfiles already used in dev, no separate manifest
+  or prod-only compose file needed — the SQLite file already lives on a named Docker
+  volume (`grimoire_data`) rather than a bind mount, even in dev, so the only real
+  difference between dev and prod is which `server/.env`/`docker/.env` values are filled
+  in (static secrets only — OAuth *client* IDs/secrets and other API keys, never a
+  user's OAuth token, which stays encrypted in SQLite regardless of environment)
 - Requires nesting enabled on the container so Docker can run inside it:
   `features: nesting=1,keyctl=1` (Proxmox GUI: Options → Features, or
   `pct set <vmid> --features nesting=1,keyctl=1`)
-- A prod compose override swaps the dev bind-mounts for a real `.env` (static secrets
-  only — OAuth *client* IDs/secrets and other API keys, never a user's OAuth token) and
-  a named Docker volume for the SQLite file (this is where the encrypted Google refresh
-  token actually lives)
 - LAN access from family devices (Pi, phones, laptops) via the LXC's own LAN IP/hostname
   — no ingress controller needed; a simple reverse proxy (nginx/Caddy) is optional if
   TLS termination is wanted later
+- Full step-by-step instructions: `docs/setup/proxmox-deployment.md`
+- **Known limitation**: `docker/server.Dockerfile` and `web.Dockerfile` run `npm run dev`
+  (tsx watch / Vite dev server) in prod too, since this plan promotes the existing dev
+  images rather than building dedicated production bundles — fine for a single-family
+  LAN app, just not as lean as a real `npm run build` + static-serve setup. A
+  production-build Dockerfile pass is a reasonable future improvement, not a blocker.
 
 ## Phase 9 — Mobile-Friendly Web App — **Not started**
 - Responsive layout pass so every Spell's UI works on phone/tablet viewports, not just

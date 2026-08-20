@@ -264,4 +264,7 @@ status.
 
 - **Dev**: Docker Compose on the dev machine (Docker Desktop), hot-reload for server + web
 - **Prod**: Docker Compose inside an unprivileged Proxmox LXC container on the Dell
-  server (Phase 8), same container images built for dev, promoted via CI
+  server (Phase 8), same `docker-compose.yml`/Dockerfiles as dev — a manual `git clone` +
+  `docker compose up` on the LXC (`docs/setup/proxmox-deployment.md`), not a CI/CD
+  pipeline; the existing CI (Phase 0) only runs lint + typecheck on push, nothing deploys
+  automatically yet
