@@ -36,13 +36,22 @@ Grimoire/
     src/
       moduleLoader.ts   Scans spells/, loads manifests, registers routes
       index.ts          App entrypoint
-    spells/             Each subfolder is a Spell: spell.json + backend code
+    spells/             Each subfolder is a Spell: spell.json + backend code (calendar,
+                        chores, recipes, meal-plan, grocery-list, retail-kroger,
+                        google-account, voice-commands, smart-home, weather)
   web/               React + TypeScript frontend (Vite)
     src/
-      spells/           Frontend widget per Spell, dynamically rendered by manifest
+      spells/           Full-screen component + home-dashboard "glance" widget(s) per
+                        Spell, dynamically rendered by manifest
+      homeGrid/         Home dashboard widget-grid engine — layout, drag, resize (see
+                        "Home dashboard" below)
+      appState/         Theme + view-state React Context providers (see "Theming" below)
+      components/       App shell: header, side dock, settings modal, spell detail view
   docker/            Dockerfiles + docker-compose.yml — also promoted to the Proxmox
                      LXC container for prod (Phase 8), no separate manifest format
   docs/              Roadmap, architecture, decisions
+    setup/           Per-integration one-time setup guides (Google, Kroger, Home
+                     Assistant/Smart Home)
 ```
 
 ## Spell architecture (module system)

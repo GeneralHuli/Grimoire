@@ -35,7 +35,9 @@ old for this project's tooling (Vite 5, typescript-eslint 8 need Node 18+), so p
 running things inside the containers over the host.
 
 - Start the stack: `docker compose -f docker/docker-compose.yml up -d --build`
-  (server on :3000, web on :5173; drop `--build` once images already exist)
+  (server on :3000, web on :5173, plus a bundled Home Assistant instance on :8123 that
+  backs the Smart Home Spell — see `docs/setup/smart-home.md`; drop `--build` once
+  images already exist)
 - Restart one service after editing its source: `docker compose -f docker/docker-compose.yml restart server` (or `web`).
   **`tsx watch` does not reliably pick up file changes made from outside the container
   in this environment** (Windows + Docker Desktop bind mount) — always restart the
@@ -88,16 +90,20 @@ they're kept current and explain *why*, not just *what*.
   google-account's client) are ordinary relative TypeScript imports — Spells are
   organizational, not process-isolated.
 - The frontend mirrors this: `web/src/spells/registry.tsx` maps a manifest's `frontend`
-  field to the React component rendered in the dashboard grid (`App.tsx`);
-  `web/src/spells/settings/registry.tsx` maps it to an optional custom Settings-modal
-  panel, falling back to the generic key/value editor (`SpellSettingsPanel`) when a
-  Spell doesn't register one.
+  field to the React component rendered full-screen when that Spell is opened from the
+  side dock (`web/src/components/SpellDetailView.tsx`); `web/src/spells/settings/
+  registry.tsx` maps it to an optional custom Settings-modal panel, falling back to the
+  generic key/value editor (`SpellSettingsPanel`) when a Spell doesn't register one. A
+  third, optional registry, `web/src/spells/homeWidgets/registry.tsx`, maps it to the
+  compact "glance" widget size variants a Spell can offer on the home dashboard grid —
+  see "Home dashboard" in `docs/ARCHITECTURE.md`.
 - Settings: `server/src/settingsStore.ts` is a generic key-value store scoped to
-  `general` or a Spell's manifest `name`. `GET/PUT /api/settings/:scope` in
-  `server/src/index.ts` merges a Spell's manifest `config` (defaults) with saved
-  overrides — a Spell's route handlers should read live settings via `getSettings()`
-  rather than trusting the `config` object passed to `register()` at startup, since that
-  snapshot doesn't reflect later overrides.
+  `general`, a Spell's manifest `name`, or any other scope string (e.g. `layout`, the
+  home dashboard's saved widget positions — no matching Spell manifest needed).
+  `GET/PUT /api/settings/:scope` in `server/src/index.ts` merges a Spell's manifest
+  `config` (defaults) with saved overrides — a Spell's route handlers should read live
+  settings via `getSettings()` rather than trusting the `config` object passed to
+  `register()` at startup, since that snapshot doesn't reflect later overrides.
 
 ### Shared Google sign-in
 
@@ -118,18 +124,26 @@ container on a Proxmox-hosted Dell server — not on the Raspberry Pi, and not a
 Kubernetes cluster (overkill for a single-family, single-node app). The LXC needs
 nesting enabled (`features: nesting=1,keyctl=1`) so Docker can run inside it. The Pi
 (with a touchscreen) is a kiosk client only, alongside a planned mobile-responsive web
-view; see the topology diagram in `docs/ARCHITECTURE.md`. This is why the CSS layout (`.grimoire-grid`, an auto-fit grid)
-is built to serve kiosk, mobile, and desktop viewports from the same code rather than
-assuming Pi-class resource constraints on the server side.
+view; see the topology diagram in `docs/ARCHITECTURE.md`. This is why the home
+dashboard's widget grid
+(`web/src/homeGrid/`) is built to fit one screen with no scrolling and its drag
+interaction is Pointer Events–based (touch-capable), rather than assuming desktop-mouse
+input or Pi-class resource constraints on the server side.
 
 ### Frontend conventions
 
-See `docs/ARCHITECTURE.md` → "Frontend conventions" before building a new Spell's UI —
-it covers two house rules that apply across Spells, not just the ones that introduced
-them: action buttons always live in a non-scrolling row at the top of their
-page/modal/panel (never CSS-scrollable out of reach), and cross-Spell drag-and-drop uses
-a small shared `dataTransfer` MIME-key module rather than any tighter coupling (see
-`web/src/spells/recipeDrag.ts` for the existing example).
+See `docs/ARCHITECTURE.md` → "Frontend conventions" (plus its "Theming" and "Home
+dashboard" subsections) before building a new Spell's UI. House rules that apply across
+Spells, not just the ones that introduced them: action buttons always live in a
+non-scrolling row at the top of their page/modal/panel (never CSS-scrollable out of
+reach); cross-Spell *semantic* drag-and-drop (dragging one Spell's item onto another
+Spell's drop target) uses a small shared `dataTransfer` MIME-key module — HTML5 DnD, see
+`web/src/spells/recipeDrag.ts` — while the home dashboard's *widget-repositioning* drag
+is a deliberately different, Pointer Events–based mechanism
+(`web/src/homeGrid/dragEngine.ts`), since HTML5 DnD has no reliable touch support and
+touch is the primary input on the kiosk this app targets; and dark is the default theme,
+applied via a `data-theme` attribute + CSS custom-property tokens rather than relying on
+`prefers-color-scheme` alone (see "Theming" in `docs/ARCHITECTURE.md`).
 
 ## Maintaining documentation
 
