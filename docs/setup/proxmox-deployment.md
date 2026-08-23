@@ -38,7 +38,12 @@ Compose install needed.
 ```bash
 git clone https://github.com/GeneralHuli/Grimoire.git
 cd Grimoire
+git checkout main
 ```
+The repo's default branch is `dev` (day-to-day integration branch — see
+`CLAUDE.md`), but this deployment tracks `main`, the stable snapshot, so later
+updates (step 8) are pulling deliberate, tested releases rather than
+in-progress `dev` work.
 
 ## 5. Set up production secrets
 
@@ -74,6 +79,24 @@ flows, not something that carries over from a dev instance.
 Any browser on the LAN hits `http://<lxc-ip>:5173` — the Pi kiosk, phones, laptops.
 No ingress or reverse proxy is required for this to work; that's only worth adding later
 for TLS or a friendly hostname instead of an IP:port.
+
+## 8. Updating
+
+Once the LXC is set up, pull in new releases with:
+
+```bash
+./scripts/update.sh
+```
+
+This fast-forwards the checkout to the latest `main` (refusing to run if the
+checkout has diverged, rather than overwriting local state), installs any
+dependency changes into the existing `server_node_modules`/`web_node_modules`
+volumes, rebuilds the images in case a Dockerfile changed, and force-recreates
+`server`/`web` so the running app definitely picks up the new code — all three
+steps the manual flow would otherwise require separately. It doesn't touch
+`home-assistant` or the `grimoire_data`/`ha_config` volumes. Run it from the
+repo root on the LXC (where step 4 cloned it); it does not need to be run from
+inside a container.
 
 ## Known limitation
 
