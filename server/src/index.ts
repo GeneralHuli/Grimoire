@@ -26,7 +26,7 @@ app.put("/api/settings/:scope", (req, res) => {
   res.json({ ...defaults, ...getSettings(scope) });
 });
 
-app.get("/healthz", (_req, res) => res.send("ok"));
+app.get("/health", (_req, res) => res.send("ok"));
 
 const port = Number(process.env.PORT ?? 3000);
 app.listen(port, () => {

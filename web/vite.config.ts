@@ -11,6 +11,10 @@ export default defineConfig({
   server: {
     host: true,
     port: 5173,
+    // Vite's dev server rejects requests whose Host header it doesn't recognize
+    // (DNS-rebinding protection) — the LAN domain HAProxy fronts this on must be
+    // explicitly allowed, or every request routed through it 403s.
+    allowedHosts: ["grimoire.avryw.com"],
     proxy: {
       "/api": apiProxyTarget,
     },
