@@ -15,6 +15,12 @@ export default defineConfig({
     // (DNS-rebinding protection) — the LAN domain HAProxy fronts this on must be
     // explicitly allowed, or every request routed through it 403s.
     allowedHosts: ["grimoire.avryw.com"],
+    // HAProxy's idle/tunnel timeout kills the long-lived HMR WebSocket every ~30s,
+    // which Vite's client treats as a lost connection and responds to with a full
+    // page reload once it reconnects — i.e. the page refreshes on a loop. Disabling
+    // HMR avoids that; changes still show up, just via a manual browser refresh
+    // instead of Fast Refresh.
+    hmr: false,
     proxy: {
       "/api": apiProxyTarget,
     },
