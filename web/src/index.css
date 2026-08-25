@@ -56,6 +56,18 @@ body {
   color: var(--grim-text);
 }
 
+/*
+ * lucide-react icons replace what used to be emoji glyphs (raspberry-pi-3b Chromium has
+ * no color emoji font installed, so those rendered blank). Scaling to 1em keeps every
+ * existing emoji-sized icon slot (font-size on the container) working unchanged, and
+ * stroke="currentColor" (lucide's default) already follows the text/theme color.
+ */
+.lucide {
+  width: 1em;
+  height: 1em;
+  flex-shrink: 0;
+}
+
 #root {
   height: 100%;
 }
@@ -1312,11 +1324,9 @@ body {
 }
 
 .smart-home-color-picker {
-  position: absolute;
+  position: fixed;
   z-index: 5;
-  bottom: calc(100% + 0.5rem);
-  left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, calc(-100% - 0.5rem));
   width: 12rem;
   padding: 0.75rem;
   border-radius: 0.75rem;
@@ -2451,6 +2461,43 @@ body {
   gap: 0.4rem;
 }
 
+.smart-home-glance-drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--grim-border);
+}
+
+.smart-home-glance-drawer-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.smart-home-glance-drawer-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.smart-home-glance-drawer-section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.7;
+}
+
+.smart-home-glance-drawer-whole-home .smart-home-glance-drawer-section-title {
+  opacity: 1;
+}
+
+.smart-home-glance-drawer-area-empty {
+  padding: 0;
+  font-size: 0.8rem;
+}
+
 .smart-home-glance-chip {
   display: flex;
   align-items: center;
@@ -2463,6 +2510,14 @@ body {
   user-select: none;
   -webkit-user-select: none;
   -webkit-touch-callout: none;
+}
+
+.smart-home-glance-chip-group {
+  border-left: 3px solid var(--grim-accent);
+}
+
+.smart-home-glance-chip-group .smart-home-glance-chip-name {
+  font-weight: 600;
 }
 
 .smart-home-glance-chip-icon {

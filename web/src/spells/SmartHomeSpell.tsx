@@ -3,14 +3,8 @@ import { SmartHomeDeviceTile } from "./SmartHomeDeviceTile";
 import { SmartHomeSummaryPanel } from "./SmartHomeSummaryPanel";
 import { SmartHomeRoomControls } from "./SmartHomeRoomControls";
 import { SmartHomeCameraModal } from "./SmartHomeCameraModal";
-import { createSmartHomeActions, type SmartHomeDevice, type UpdateSmartHomeDevice } from "./smartHomeActions";
+import { createSmartHomeActions, type SmartHomeArea, type SmartHomeDevice, type UpdateSmartHomeDevice } from "./smartHomeActions";
 import { useSmartHomeDeviceSync } from "./smartHomeEvents";
-
-interface SmartHomeArea {
-  id: string;
-  name: string;
-  entityIds: string[];
-}
 
 /** Same-type tiles cluster together within a room card (climate dial, then lights, then
  * switches...) instead of interleaving in whatever order Home Assistant happened to

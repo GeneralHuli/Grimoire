@@ -1,4 +1,5 @@
-import { useRef } from "react";
+import { useLayoutEffect, useRef, useState, type RefObject } from "react";
+import { createPortal } from "react-dom";
 
 const HUE_PRESETS = [0, 25, 45, 90, 150, 195, 230, 275, 320];
 
@@ -7,6 +8,8 @@ interface ColorPickerProps {
   mode: "color";
   onPick: (hue: number) => void;
   onClose: () => void;
+  /** Element the popover is visually anchored above -- see anchorRef note below. */
+  anchorRef: RefObject<HTMLElement | null>;
 }
 
 interface TempPickerProps {
@@ -16,12 +19,30 @@ interface TempPickerProps {
   maxKelvin: number;
   onPick: (kelvin: number) => void;
   onClose: () => void;
+  /** Element the popover is visually anchored above -- see anchorRef note below. */
+  anchorRef: RefObject<HTMLElement | null>;
 }
 
 type SmartHomeColorPickerProps = ColorPickerProps | TempPickerProps;
 
+/**
+ * Rendered via portal to document.body, positioned in fixed coordinates from
+ * anchorRef's on-screen rect, rather than as a CSS-absolute child of the tile. The home
+ * dashboard's compact glance grid clips and scales its tiles (`overflow: hidden` +
+ * `transform: scale()` for the grid-fit math) -- an absolutely-positioned child popping
+ * up "above" the tile would be clipped or shrunk into invisibility there, even though it
+ * renders fine unclipped in the full Spell view.
+ */
 export function SmartHomeColorPicker(props: SmartHomeColorPickerProps) {
   const stripRef = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
+
+  useLayoutEffect(() => {
+    const anchor = props.anchorRef.current;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    setPos({ left: rect.left + rect.width / 2, top: rect.top });
+  }, [props.anchorRef]);
 
   function fractionFromPointer(clientX: number): number {
     const strip = stripRef.current;
@@ -48,8 +69,14 @@ export function SmartHomeColorPicker(props: SmartHomeColorPickerProps) {
     emit(fractionFromPointer(e.clientX));
   }
 
-  return (
-    <div className="smart-home-color-picker" onPointerDown={(e) => e.stopPropagation()}>
+  if (!pos) return null;
+
+  return createPortal(
+    <div
+      className="smart-home-color-picker"
+      style={{ left: pos.left, top: pos.top }}
+      onPointerDown={(e) => e.stopPropagation()}
+    >
       <div className="smart-home-color-picker-header">
         <span>{props.mode === "color" ? "Choose a color" : "Choose warmth"}</span>
         <button type="button" className="btn btn-icon smart-home-color-picker-close" onClick={props.onClose} aria-label="Close">
@@ -76,6 +103,7 @@ export function SmartHomeColorPicker(props: SmartHomeColorPickerProps) {
           ))}
         </div>
       )}
-    </div>
+    </div>,
+    document.body
   );
 }

@@ -1,5 +1,7 @@
+import type { ReactNode } from "react";
 import type { SmartHomeDevice, UpdateSmartHomeDevice } from "./smartHomeActions";
 import { allMatch, allMatchState, runBulk } from "./smartHomeBulk";
+import { SMART_HOME_DOMAIN_ICONS } from "./smartHomeIcons";
 
 interface SmartHomeRoomControlsProps {
   areaName: string;
@@ -8,7 +10,7 @@ interface SmartHomeRoomControlsProps {
 }
 
 interface MasterToggleProps {
-  icon: string;
+  icon: ReactNode;
   active: boolean;
   label: string;
   onClick: () => void;
@@ -53,7 +55,7 @@ export function SmartHomeRoomControls({ areaName, devices, updateDevice }: Smart
     <div className="smart-home-room-controls">
       {lights.length > 0 && (
         <MasterToggle
-          icon="💡"
+          icon={<SMART_HOME_DOMAIN_ICONS.light />}
           active={lightsOn}
           label={`${lightsOn ? "Turn off" : "Turn on"} all lights in ${areaName}`}
           onClick={() => runBulk(updateDevice, lights, lightsOn ? "turn_off" : "turn_on", lightsOn ? "off" : "on")}
@@ -61,7 +63,7 @@ export function SmartHomeRoomControls({ areaName, devices, updateDevice }: Smart
       )}
       {switches.length > 0 && (
         <MasterToggle
-          icon="🔌"
+          icon={<SMART_HOME_DOMAIN_ICONS.switch />}
           active={switchesOn}
           label={`${switchesOn ? "Turn off" : "Turn on"} all switches in ${areaName}`}
           onClick={() => runBulk(updateDevice, switches, switchesOn ? "turn_off" : "turn_on", switchesOn ? "off" : "on")}
@@ -69,7 +71,7 @@ export function SmartHomeRoomControls({ areaName, devices, updateDevice }: Smart
       )}
       {fans.length > 0 && (
         <MasterToggle
-          icon="🌀"
+          icon={<SMART_HOME_DOMAIN_ICONS.fan />}
           active={fansOn}
           label={`${fansOn ? "Turn off" : "Turn on"} all fans in ${areaName}`}
           onClick={() => runBulk(updateDevice, fans, fansOn ? "turn_off" : "turn_on", fansOn ? "off" : "on")}
@@ -77,7 +79,7 @@ export function SmartHomeRoomControls({ areaName, devices, updateDevice }: Smart
       )}
       {covers.length > 0 && (
         <MasterToggle
-          icon="🪟"
+          icon={<SMART_HOME_DOMAIN_ICONS.cover />}
           active={coversOpen}
           label={`${coversOpen ? "Close" : "Open"} all covers in ${areaName}`}
           onClick={() => runBulk(updateDevice, covers, coversOpen ? "close_cover" : "open_cover", coversOpen ? "closed" : "open")}
@@ -85,7 +87,7 @@ export function SmartHomeRoomControls({ areaName, devices, updateDevice }: Smart
       )}
       {locks.length > 0 && (
         <MasterToggle
-          icon="🔒"
+          icon={<SMART_HOME_DOMAIN_ICONS.lock />}
           active={locksLocked}
           label={`${locksLocked ? "Unlock" : "Lock"} all locks in ${areaName}`}
           onClick={() => runBulk(updateDevice, locks, locksLocked ? "unlock" : "lock", locksLocked ? "unlocked" : "locked")}

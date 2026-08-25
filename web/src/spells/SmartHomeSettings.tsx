@@ -1,3 +1,4 @@
+import { Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export function SmartHomeSettings() {
@@ -74,7 +75,7 @@ export function SmartHomeSettings() {
           <p>Status: Connected</p>
           <p>
             Choose which controls show on the home dashboard's compact Smart Home widget from the widget itself --
-            tap its ⚙ icon.
+            tap its <Settings size={14} style={{ verticalAlign: -2 }} /> icon.
           </p>
           <button className="btn btn-lg" onClick={disconnect}>
             Disconnect Home Assistant

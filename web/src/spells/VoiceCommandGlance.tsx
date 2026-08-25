@@ -1,3 +1,5 @@
+import { Mic } from "lucide-react";
+
 /**
  * Nav-shortcut only, not inline mic capture -- VoiceCommandSpell.tsx has no capture hook
  * exposed to reuse without editing it, and there's no other meaningfully glanceable
@@ -7,7 +9,9 @@
 export function VoiceCommandShortcutGlance() {
   return (
     <div className="voice-command-glance">
-      <span className="voice-command-glance-icon">🎙️</span>
+      <span className="voice-command-glance-icon">
+        <Mic />
+      </span>
       <span>Voice Commands</span>
     </div>
   );

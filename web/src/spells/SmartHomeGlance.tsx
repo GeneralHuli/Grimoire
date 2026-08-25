@@ -1,7 +1,10 @@
+import { Settings } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { SmartHomeDeviceTile } from "./SmartHomeDeviceTile";
 import { SmartHomeGlanceDrawer } from "./SmartHomeGlanceDrawer";
-import { createSmartHomeActions, type SmartHomeDevice, type UpdateSmartHomeDevice } from "./smartHomeActions";
+import { createSmartHomeActions, type SmartHomeArea, type SmartHomeDevice, type UpdateSmartHomeDevice } from "./smartHomeActions";
+import { createSmartHomeGroupActions } from "./smartHomeGroupActions";
+import { buildGroupDevice, groupDisplayName, groupNameFromId, parseGroupControlId, resolveGroupMembers } from "./smartHomeGroups";
 import { useSmartHomeDeviceSync } from "./smartHomeEvents";
 import {
   SMART_HOME_GRID_COLS,
@@ -116,6 +119,7 @@ function pickDrawerEdge(rect: DOMRect): "left" | "right" | "top" | "bottom" {
  */
 export function SmartHomeBoardGlance() {
   const [devices, setDevices] = useState<SmartHomeDevice[] | null>(null);
+  const [areas, setAreas] = useState<SmartHomeArea[]>([]);
   const [glanceLayout, setGlanceLayout] = useState<SmartHomeGridPlacement[] | null>(null);
   const [connected, setConnected] = useState(true);
   const [colorPickerFor, setColorPickerFor] = useState<string | null>(null);
@@ -125,8 +129,12 @@ export function SmartHomeBoardGlance() {
   const [cellPx, setCellPx] = useState(BASELINE_CELL_PX);
 
   useEffect(() => {
-    Promise.all([fetch("/api/spells/smart-home/devices"), fetch("/api/settings/smart-home")])
-      .then(async ([devicesRes, settingsRes]) => {
+    Promise.all([
+      fetch("/api/spells/smart-home/devices"),
+      fetch("/api/settings/smart-home"),
+      fetch("/api/spells/smart-home/areas"),
+    ])
+      .then(async ([devicesRes, settingsRes, areasRes]) => {
         if (!devicesRes.ok) {
           setConnected(false);
           return;
@@ -135,6 +143,7 @@ export function SmartHomeBoardGlance() {
         const settingsData = (await settingsRes.json()) as { glanceLayout?: SmartHomeGridPlacement[] };
         setDevices(devicesData.devices);
         setGlanceLayout(settingsData.glanceLayout ?? []);
+        setAreas(areasRes.ok ? ((await areasRes.json()) as { areas: SmartHomeArea[] }).areas : []);
       })
       .catch(() => setConnected(false));
   }, []);
@@ -195,23 +204,34 @@ export function SmartHomeBoardGlance() {
     setDrawerEdge(rect ? pickDrawerEdge(rect) : "right");
   }
 
-  const placed: (PlacedControl & { device: SmartHomeDevice })[] = useMemo(() => {
+  const placed: (PlacedControl & { device: SmartHomeDevice; group: boolean; members: SmartHomeDevice[] })[] = useMemo(() => {
     if (!devices || !glanceLayout) return [];
-    const result: (PlacedControl & { device: SmartHomeDevice })[] = [];
+    const result: (PlacedControl & { device: SmartHomeDevice; group: boolean; members: SmartHomeDevice[] })[] = [];
     for (const p of glanceLayout) {
+      const groupInfo = parseGroupControlId(p.entityId);
+      if (groupInfo) {
+        const members = resolveGroupMembers(groupInfo.areaId, groupInfo.domain, devices, areas);
+        if (members.length === 0) continue;
+        const areaName = groupInfo.areaId === null ? "Home" : (areas.find((a) => a.id === groupInfo.areaId)?.name ?? "Home");
+        const device = buildGroupDevice(p.entityId, groupDisplayName(groupInfo.areaId, areaName, groupInfo.domain), groupInfo.domain, members);
+        const { w, h } = controlGridSize(device);
+        result.push({ entityId: p.entityId, x: p.x, y: p.y, w, h, device, group: true, members });
+        continue;
+      }
       const device = devices.find((d) => d.entityId === p.entityId);
       if (!device) continue;
       const { w, h } = controlGridSize(device);
-      result.push({ entityId: p.entityId, x: p.x, y: p.y, w, h, device });
+      result.push({ entityId: p.entityId, x: p.x, y: p.y, w, h, device, group: false, members: [] });
     }
     return result;
-  }, [devices, glanceLayout]);
+  }, [devices, glanceLayout, areas]);
+
+  const placedIds = useMemo(() => new Set((glanceLayout ?? []).map((p) => p.entityId)), [glanceLayout]);
 
   const availableDevices = useMemo(() => {
     if (!devices || !glanceLayout) return [];
-    const placedIds = new Set(glanceLayout.map((p) => p.entityId));
     return devices.filter((d) => PICKABLE_DOMAINS.has(d.domain) && !placedIds.has(d.entityId));
-  }, [devices, glanceLayout]);
+  }, [devices, glanceLayout, placedIds]);
 
   const { dragState, startDrag } = useSmartHomeGridDrag({
     cellSize: cellPx,
@@ -240,7 +260,9 @@ export function SmartHomeBoardGlance() {
     : insertDragState && insertDragState.targetX !== null && insertDragState.targetY !== null
       ? { x: insertDragState.targetX, y: insertDragState.targetY, w: insertDragState.w, h: insertDragState.h, valid: insertDragState.valid }
       : null;
-  const insertDragDevice = insertDragState ? devices.find((d) => d.entityId === insertDragState.entityId) : undefined;
+  const insertDragName = insertDragState
+    ? (devices.find((d) => d.entityId === insertDragState.entityId)?.name ?? groupNameFromId(insertDragState.entityId, areas) ?? undefined)
+    : undefined;
 
   return (
     <div
@@ -257,7 +279,7 @@ export function SmartHomeBoardGlance() {
           aria-label={editMode ? "Close compact view editor" : "Edit compact view"}
           aria-pressed={editMode}
         >
-          ⚙
+          <Settings />
         </button>
       </div>
       <div
@@ -268,7 +290,11 @@ export function SmartHomeBoardGlance() {
           gridTemplateRows: `repeat(${SMART_HOME_GRID_ROWS}, 1fr)`,
         }}
       >
-        {placed.length === 0 && !editMode && <p className="glance-empty">Choose devices to show here -- tap ⚙ to add some</p>}
+        {placed.length === 0 && !editMode && (
+          <p className="glance-empty">
+            Choose devices to show here -- tap <Settings size={14} style={{ verticalAlign: -2 }} /> to add some
+          </p>
+        )}
         {editMode &&
           Array.from({ length: SMART_HOME_GRID_COLS * SMART_HOME_GRID_ROWS }, (_, i) => {
             const x = i % SMART_HOME_GRID_COLS;
@@ -318,7 +344,7 @@ export function SmartHomeBoardGlance() {
               >
                 <SmartHomeDeviceTile
                   device={control.device}
-                  actions={actions}
+                  actions={control.group ? createSmartHomeGroupActions(control.members, updateDevice) : actions}
                   colorPickerFor={colorPickerFor}
                   onOpenColorPicker={setColorPickerFor}
                   compact
@@ -331,17 +357,20 @@ export function SmartHomeBoardGlance() {
       {editMode && drawerEdge && (
         <SmartHomeGlanceDrawer
           edge={drawerEdge}
-          devices={availableDevices}
+          allDevices={devices}
+          availableDevices={availableDevices}
+          areas={areas}
+          placedIds={placedIds}
           onStartDragChip={(device, e) => startInsertDrag({ entityId: device.entityId, ...controlGridSize(device) }, e)}
           onClose={() => setDrawerEdge(null)}
         />
       )}
-      {insertDragState && insertDragDevice && (
+      {insertDragState && insertDragName && (
         <div
           className={`smart-home-glance-insert-ghost${insertDragState.valid ? " valid" : ""}`}
           style={{ left: insertDragState.clientX, top: insertDragState.clientY }}
         >
-          {insertDragDevice.name}
+          {insertDragName}
         </div>
       )}
     </div>

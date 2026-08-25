@@ -6,6 +6,12 @@ export interface SmartHomeDevice {
   attributes: Record<string, unknown>;
 }
 
+export interface SmartHomeArea {
+  id: string;
+  name: string;
+  entityIds: string[];
+}
+
 export type UpdateSmartHomeDevice = (
   entityId: string,
   patch: Partial<SmartHomeDevice> | ((d: SmartHomeDevice) => Partial<SmartHomeDevice>)

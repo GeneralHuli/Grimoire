@@ -1,3 +1,4 @@
+import { Mic, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 interface ChoreTaskContext {
@@ -327,7 +328,7 @@ export function VoiceCommandSpell() {
             aria-pressed={listening}
             aria-label={listening ? "Stop listening" : "Start listening"}
           >
-            {listening ? "●" : "🎙"}
+            {listening ? "●" : <Mic />}
           </button>
         )}
         <input
@@ -347,7 +348,7 @@ export function VoiceCommandSpell() {
           aria-pressed={muted}
           aria-label={muted ? "Unmute spoken responses" : "Mute spoken responses"}
         >
-          {muted ? "🔇" : "🔊"}
+          {muted ? <VolumeX /> : <Volume2 />}
         </button>
       </form>
 

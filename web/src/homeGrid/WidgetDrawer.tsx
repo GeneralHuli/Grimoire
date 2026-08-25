@@ -1,5 +1,5 @@
 import { HOME_WIDGET_VARIANTS } from "../spells/homeWidgets/registry";
-import { spellIcon } from "../spells/spellIcons";
+import { SpellIcon } from "../spells/spellIcons";
 import type { SpellManifest } from "../types";
 
 interface WidgetDrawerProps {
@@ -35,7 +35,9 @@ export function WidgetDrawer({ spells, placedSpellNames, onAdd, onClose }: Widge
               {available.map((spell) => (
                 <li key={spell.name}>
                   <button type="button" className="widget-drawer-item" onClick={() => onAdd(spell.name)}>
-                    <span className="widget-drawer-item-icon">{spellIcon(spell.name, spell.displayName)}</span>
+                    <span className="widget-drawer-item-icon">
+                      <SpellIcon name={spell.name} displayName={spell.displayName} />
+                    </span>
                     <span>{spell.displayName}</span>
                   </button>
                 </li>

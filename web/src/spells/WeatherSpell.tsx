@@ -60,7 +60,9 @@ export function WeatherSpell() {
     <div className="spell-card">
       <h2>Weather{locationName ? ` — ${locationName}` : ""}</h2>
       <div className="weather-current">
-        <span className="weather-current-icon">{current.icon}</span>
+        <span className="weather-current-icon">
+          <current.Icon />
+        </span>
         <div>
           <div className="weather-current-temp">
             {Math.round(forecast.current.temperature)}
@@ -83,7 +85,9 @@ export function WeatherSpell() {
               <div className="weather-hour-time">
                 {new Date(hour.time).toLocaleTimeString([], { hour: "numeric" })}
               </div>
-              <div className="weather-hour-icon">{info.icon}</div>
+              <div className="weather-hour-icon">
+                <info.Icon />
+              </div>
               <div className="weather-hour-temp">
                 {Math.round(hour.temperature)}
                 {unitSuffix}
@@ -102,7 +106,9 @@ export function WeatherSpell() {
               <span className="weather-daily-date">
                 {new Date(day.date).toLocaleDateString([], { weekday: "short" })}
               </span>
-              <span className="weather-daily-icon">{info.icon}</span>
+              <span className="weather-daily-icon">
+                <info.Icon />
+              </span>
               <span className="weather-daily-label">{info.label}</span>
               <span className="weather-daily-precip">{day.precipitationProbability}%</span>
               <span className="weather-daily-range">

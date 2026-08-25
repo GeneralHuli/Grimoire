@@ -39,7 +39,9 @@ export function WeatherSmallGlance() {
 
   return (
     <div className="weather-glance-small">
-      <span className="weather-glance-icon">{info.icon}</span>
+      <span className="weather-glance-icon">
+        <info.Icon />
+      </span>
       <span className="weather-glance-temp">{Math.round(forecast.current.temperature)}°</span>
       {locationName && <span className="weather-glance-location">{locationName}</span>}
     </div>
@@ -59,7 +61,9 @@ export function WeatherLargeGlance() {
   return (
     <div className="weather-glance-large">
       <div className="weather-glance-large-header">
-        <span className="weather-glance-icon">{info.icon}</span>
+        <span className="weather-glance-icon">
+          <info.Icon />
+        </span>
         <div>
           <div className="weather-glance-temp">{Math.round(forecast.current.temperature)}°</div>
           <div className="weather-glance-label">{info.label}</div>
@@ -79,7 +83,9 @@ export function WeatherLargeGlance() {
               <div className="weather-hour-time">
                 {new Date(hour.time).toLocaleTimeString([], { hour: "numeric" })}
               </div>
-              <div className="weather-hour-icon">{hourInfo.icon}</div>
+              <div className="weather-hour-icon">
+                <hourInfo.Icon />
+              </div>
               <div className="weather-hour-temp">{Math.round(hour.temperature)}°</div>
             </div>
           );
@@ -94,7 +100,9 @@ export function WeatherLargeGlance() {
                 <div className="weather-glance-daily-card-label">
                   {new Date(day.date).toLocaleDateString([], { weekday: "short" })}
                 </div>
-                <div className="weather-glance-daily-card-icon">{dayInfo.icon}</div>
+                <div className="weather-glance-daily-card-icon">
+                  <dayInfo.Icon />
+                </div>
                 <div className="weather-glance-daily-card-range">
                   {Math.round(day.high)}°/{Math.round(day.low)}°
                 </div>

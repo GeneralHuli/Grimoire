@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { SmartHomeDevice, UpdateSmartHomeDevice } from "./smartHomeActions";
 import { allMatchState, runBulk } from "./smartHomeBulk";
+import { SMART_HOME_DOMAIN_ICONS } from "./smartHomeIcons";
 
 interface SmartHomeSummaryPanelProps {
   devices: SmartHomeDevice[];
@@ -11,7 +12,7 @@ interface SmartHomeSummaryPanelProps {
 }
 
 interface SummaryRowProps {
-  icon: string;
+  icon: ReactNode;
   title: string;
   subtitle: string;
   children?: ReactNode;
@@ -87,7 +88,7 @@ export function SmartHomeSummaryPanel({ devices, updateDevice }: SmartHomeSummar
       <h3>Summaries</h3>
 
       {lights.length > 0 && (
-        <SummaryRow icon="💡" title="Lights" subtitle={`${lights.filter((d) => d.state === "on").length} on`}>
+        <SummaryRow icon={<SMART_HOME_DOMAIN_ICONS.light />} title="Lights" subtitle={`${lights.filter((d) => d.state === "on").length} on`}>
           <ToggleActions
             onLabel="All on"
             offLabel="All off"
@@ -100,11 +101,11 @@ export function SmartHomeSummaryPanel({ devices, updateDevice }: SmartHomeSummar
       )}
 
       {climate.length > 0 && (
-        <SummaryRow icon="🌡️" title="Climate" subtitle={`${climate.length} device${climate.length === 1 ? "" : "s"}`} />
+        <SummaryRow icon={<SMART_HOME_DOMAIN_ICONS.climate />} title="Climate" subtitle={`${climate.length} device${climate.length === 1 ? "" : "s"}`} />
       )}
 
       {locks.length > 0 && (
-        <SummaryRow icon="🔒" title="Security" subtitle={`${locksUnlocked} unlocked`}>
+        <SummaryRow icon={<SMART_HOME_DOMAIN_ICONS.lock />} title="Security" subtitle={`${locksUnlocked} unlocked`}>
           <ToggleActions
             onLabel="Unlock all"
             offLabel="Lock all"
@@ -117,7 +118,7 @@ export function SmartHomeSummaryPanel({ devices, updateDevice }: SmartHomeSummar
       )}
 
       {mediaPlayers.length > 0 && (
-        <SummaryRow icon="📺" title="Media players" subtitle={`${playersPlaying} playing`}>
+        <SummaryRow icon={<SMART_HOME_DOMAIN_ICONS.media_player />} title="Media players" subtitle={`${playersPlaying} playing`}>
           <button
             type="button"
             className="btn btn-sm smart-home-summary-btn"
@@ -136,7 +137,7 @@ export function SmartHomeSummaryPanel({ devices, updateDevice }: SmartHomeSummar
       )}
 
       {fans.length > 0 && (
-        <SummaryRow icon="🌀" title="Fans" subtitle={`${fans.filter((d) => d.state === "on").length} on`}>
+        <SummaryRow icon={<SMART_HOME_DOMAIN_ICONS.fan />} title="Fans" subtitle={`${fans.filter((d) => d.state === "on").length} on`}>
           <ToggleActions
             onLabel="All on"
             offLabel="All off"
@@ -149,7 +150,7 @@ export function SmartHomeSummaryPanel({ devices, updateDevice }: SmartHomeSummar
       )}
 
       {covers.length > 0 && (
-        <SummaryRow icon="🪟" title="Covers" subtitle={`${coversOpen} open`}>
+        <SummaryRow icon={<SMART_HOME_DOMAIN_ICONS.cover />} title="Covers" subtitle={`${coversOpen} open`}>
           <ToggleActions
             onLabel="Open all"
             offLabel="Close all"

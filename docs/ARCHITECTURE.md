@@ -157,6 +157,21 @@ is a handful of intentionally "ghost" (no background) minimal buttons — `.reci
 already-mutually-consistent affordance (a quiet inline action, not a primary button) and
 shouldn't be forced onto `.btn`.
 
+**Icons are `lucide-react` components, not emoji.** Every dock/nav/device/status icon
+(the side dock, the widget drawer, weather conditions, Smart Home device-type icons,
+Voice Commands' mic/mute) renders a `lucide-react` icon component, sized via `.lucide {
+width: 1em; height: 1em }` in `web/src/index.css` so it scales with whatever font-size
+the surrounding button/label context already sets — the same slot emoji used to fill.
+`web/src/spells/spellIcons.tsx` (`SpellIcon`) maps a Spell manifest name to its dock
+icon, and `web/src/spells/smartHomeIcons.ts` (`SMART_HOME_DOMAIN_ICONS`) maps a Home
+Assistant domain to its icon, both with the same shape: one shared lookup imported
+everywhere that icon is needed, not redeclared per component. Rationale: emoji glyphs
+depend on the OS having a color emoji font installed, which Raspberry Pi OS's Chromium
+does not ship by default — they rendered as blank glyphs on the kiosk. A handful of
+plain-text symbols used decoratively rather than as a device/nav icon (recipe rating
+stars `★`, modal close buttons `×`) are exempt — those are ordinary Unicode glyphs every
+font renders, not emoji.
+
 **Cross-Spell frontend drag-and-drop.** Spells rendered as separate dashboard cards can
 still be a native HTML5 drag source/drop target pair — no coordination layer needed
 beyond agreeing on a `dataTransfer` MIME key. The Recipes Spell's recipe cards

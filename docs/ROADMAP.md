@@ -440,6 +440,10 @@ Agreed build order: **Part 1 → Part 2 → Part 3.**
 - Chromium kiosk mode on the Pi touchscreen, pointed at the Grimoire server on the LAN
 - Module layout configuration and the theming pass originally scoped here shipped early,
   as Phase 11 below — what's left is specifically the Pi hardware/kiosk-mode setup
+- Fixed early (2026-08-25): every UI icon was an emoji character, which rendered blank
+  on the Pi's Chromium (Raspberry Pi OS ships no color emoji font by default). Replaced
+  app-wide with `lucide-react` icon components — see "Frontend conventions" in
+  `docs/ARCHITECTURE.md`.
 
 ## Phase 11 — Home Dashboard Redesign — **Done (2026-08-13)**
 - Pulled forward from Phase 10 (module layout configuration, theming) plus a new Weather

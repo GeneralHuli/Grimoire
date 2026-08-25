@@ -1,6 +1,7 @@
+import { Home, Moon, Settings, Sun } from "lucide-react";
 import { useView } from "../appState/ViewContext";
 import { useTheme } from "../appState/ThemeContext";
-import { spellIcon } from "../spells/spellIcons";
+import { SpellIcon } from "../spells/spellIcons";
 import type { SpellManifest } from "../types";
 
 interface SideDockProps {
@@ -22,7 +23,7 @@ export function SideDock({ spells, onOpenSettings }: SideDockProps) {
         aria-label="Home"
         title="Home"
       >
-        🏡
+        <Home />
       </button>
       <div className="grimoire-dock-spells">
         {dockable.map((spell) => (
@@ -35,7 +36,7 @@ export function SideDock({ spells, onOpenSettings }: SideDockProps) {
             aria-label={spell.displayName}
             title={spell.displayName}
           >
-            {spellIcon(spell.name, spell.displayName)}
+            <SpellIcon name={spell.name} displayName={spell.displayName} />
           </button>
         ))}
       </div>
@@ -46,10 +47,10 @@ export function SideDock({ spells, onOpenSettings }: SideDockProps) {
           aria-label="Toggle theme"
           title="Toggle theme"
         >
-          {resolved === "dark" ? "🌙" : "☀️"}
+          {resolved === "dark" ? <Moon /> : <Sun />}
         </button>
         <button className="btn btn-icon btn-icon-lg" onClick={onOpenSettings} aria-label="Open settings" title="Settings">
-          ⚙
+          <Settings />
         </button>
       </div>
     </nav>

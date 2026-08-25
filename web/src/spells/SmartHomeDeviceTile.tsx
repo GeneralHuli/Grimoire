@@ -1,4 +1,6 @@
+import { useRef } from "react";
 import { SmartHomeLevelSlider } from "./SmartHomeLevelSlider";
+import { SMART_HOME_DOMAIN_ICONS } from "./smartHomeIcons";
 import { SmartHomeColorPicker } from "./SmartHomeColorPicker";
 import { SmartHomeLockControl } from "./SmartHomeLockControl";
 import { SmartHomeThermostatControl } from "./SmartHomeThermostatControl";
@@ -46,6 +48,7 @@ interface SmartHomeDeviceTileProps {
  * live feed doesn't belong in a compact tile); callers should filter that domain out.
  */
 export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenColorPicker, compact }: SmartHomeDeviceTileProps) {
+  const anchorRef = useRef<HTMLDivElement>(null);
   switch (device.domain) {
     case "light": {
       const supportsHue = lightSupportsHue(device.attributes);
@@ -53,12 +56,12 @@ export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenCol
       const canPickColor = supportsHue || supportsTemp;
       const showPicker = colorPickerFor === device.entityId;
       return (
-        <div className="smart-home-tile-anchor">
+        <div className="smart-home-tile-anchor" ref={anchorRef}>
           <SmartHomeLevelSlider
             value={lightBrightnessPct(device.attributes)}
             active={device.state === "on"}
             color={lightFillColor(device.attributes)}
-            icon={compact ? undefined : "💡"}
+            icon={compact ? undefined : <SMART_HOME_DOMAIN_ICONS.light />}
             label={device.name}
             onToggle={() => actions.toggleOnOff(device)}
             onChangeLevel={(pct) => actions.setLightLevel(device, pct)}
@@ -66,10 +69,16 @@ export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenCol
           />
           {showPicker &&
             (supportsHue ? (
-              <SmartHomeColorPicker mode="color" onPick={(hue) => actions.setLightHue(device, hue)} onClose={() => onOpenColorPicker(null)} />
+              <SmartHomeColorPicker
+                mode="color"
+                anchorRef={anchorRef}
+                onPick={(hue) => actions.setLightHue(device, hue)}
+                onClose={() => onOpenColorPicker(null)}
+              />
             ) : (
               <SmartHomeColorPicker
                 mode="temp"
+                anchorRef={anchorRef}
                 minKelvin={lightColorTempRangeKelvin(device.attributes)[0]}
                 maxKelvin={lightColorTempRangeKelvin(device.attributes)[1]}
                 onPick={(kelvin) => actions.setLightColorTemp(device, kelvin)}
@@ -84,7 +93,7 @@ export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenCol
         <SmartHomeSwitchToggle
           checked={device.state === "on"}
           label={device.name}
-          icon={compact ? undefined : "🔌"}
+          icon={compact ? undefined : <SMART_HOME_DOMAIN_ICONS.switch />}
           onToggle={() => actions.toggleOnOff(device)}
         />
       );
@@ -94,7 +103,7 @@ export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenCol
           <SmartHomeLevelSlider
             value={fanPercentage(device.attributes)}
             active={device.state === "on"}
-            icon={compact ? undefined : "🌀"}
+            icon={compact ? undefined : <SMART_HOME_DOMAIN_ICONS.fan />}
             label={device.name}
             onToggle={() => actions.toggleOnOff(device)}
             onChangeLevel={(pct) => actions.setFanLevel(device, pct)}
@@ -105,7 +114,7 @@ export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenCol
         <SmartHomeSwitchToggle
           checked={device.state === "on"}
           label={device.name}
-          icon={compact ? undefined : "🌀"}
+          icon={compact ? undefined : <SMART_HOME_DOMAIN_ICONS.fan />}
           onToggle={() => actions.toggleOnOff(device)}
         />
       );
@@ -118,7 +127,7 @@ export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenCol
           <SmartHomeLevelSlider
             value={typeof device.attributes.current_position === "number" ? device.attributes.current_position : 0}
             active={device.state !== "closed"}
-            icon={compact ? undefined : "🪟"}
+            icon={compact ? undefined : <SMART_HOME_DOMAIN_ICONS.cover />}
             label={device.name}
             onToggle={() => actions.toggleCover(device)}
             onChangeLevel={(pct) => actions.setCoverPosition(device, pct)}

@@ -141,9 +141,12 @@ Spell's drop target) uses a small shared `dataTransfer` MIME-key module — HTML
 `web/src/spells/recipeDrag.ts` — while the home dashboard's *widget-repositioning* drag
 is a deliberately different, Pointer Events–based mechanism
 (`web/src/homeGrid/dragEngine.ts`), since HTML5 DnD has no reliable touch support and
-touch is the primary input on the kiosk this app targets; and dark is the default theme,
+touch is the primary input on the kiosk this app targets; dark is the default theme,
 applied via a `data-theme` attribute + CSS custom-property tokens rather than relying on
-`prefers-color-scheme` alone (see "Theming" in `docs/ARCHITECTURE.md`).
+`prefers-color-scheme` alone (see "Theming" in `docs/ARCHITECTURE.md`); and icons are
+`lucide-react` components (sized via the global `.lucide { width/height: 1em }` rule),
+not emoji — Raspberry Pi OS's Chromium has no color emoji font installed by default, so
+emoji icons rendered blank on the kiosk.
 
 ## Maintaining documentation
 
