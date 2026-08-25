@@ -339,6 +339,53 @@ Agreed build order: **Part 1 → Part 2 → Part 3.**
   behave the same way here as on a native Linux host). This becomes testable once Home
   Assistant runs somewhere with real LAN access — most naturally the eventual Proxmox
   deployment (Phase 8).
+- **Reworked into a live, room-grouped dashboard with a Summaries panel and doorbell
+  popups** (2026-08-24): the Spell page now fetches `GET /api/spells/smart-home/areas`
+  alongside `/devices` and renders one card per Home Assistant area/room (mixed device
+  types together, matching a hand-drawn room-card sketch) instead of grouping by domain;
+  ungrouped entities land in a synthetic "Other" bucket. A new right-hand
+  `SmartHomeSummaryPanel` (styled after Home Assistant's own dashboard summary cards)
+  shows a count per category with bulk actions where a clean on/off pairing exists —
+  "All on"/"All off" (lights, fans), "Open all"/"Close all" (covers), "Lock all"/"Unlock
+  all" (locks), "Pause all"/"Stop all" (media players) — each backed by one new
+  `POST /api/spells/smart-home/bulk-call` request per affected domain (Home Assistant
+  accepts an `entity_id` array in one service call) rather than N individual calls.
+  Weather and "Maintenance" from the Home Assistant reference image were deliberately
+  left out — weather already has its own Spell, and battery/maintenance sensors aren't a
+  tracked domain.
+  - **`media_player` is now a supported domain** — a new `SmartHomeMediaPlayerControl.tsx`
+    (play/pause, stop, a volume slider, track title/artist) plus attribute helpers in
+    `smartHomeAttributes.ts` reading the `MediaPlayerEntityFeature` bitmask, same pattern
+    as the existing cover-stop-support check.
+  - **Real-time sync, no polling**: a new persistent backend WebSocket client to Home
+    Assistant (`server/spells/smart-home/haSocket.ts`, the `ws` package) subscribes to
+    `state_changed` and relays every update to connected browsers over Server-Sent Events
+    (`GET /api/spells/smart-home/events`, `sseHub.ts`) — a shared `EventSource` on the
+    frontend (`smartHomeEvents.ts`) patches whichever tiles are on screen (spell page,
+    dashboard glance widget, or both) live, including changes made outside Grimoire
+    entirely (a wall switch, the Home Assistant app). The same WebSocket connection is
+    also the only way to get room/area names at all — Home Assistant's REST API doesn't
+    expose the area registry, only the WebSocket admin API does
+    (`config/area_registry/list` + `device_registry/list` + `entity_registry/list`,
+    refreshed on `*_registry_updated` events).
+  - **Doorbell-ring live-feed popup**: `haSocket.ts` treats any entity with
+    `device_class: "doorbell"` transitioning on (binary_sensor) or firing (`event`
+    domain) as a ring, pairs it with a camera in the same area (falling back to the
+    system's sole camera if there's exactly one), and pushes a `doorbell` SSE event; a
+    new app-wide `SmartHomeDoorbell` component (mounted in `App.tsx`, not scoped to the
+    Spell page, so a ring surfaces no matter which Spell is open) pops the shared
+    `SmartHomeCameraModal` with a 5-minute auto-close timer that resets on a fresh ring.
+    **Not yet verified against a real ring** — no doorbell integration is configured in
+    this dev Home Assistant instance yet; the `device_class`-based detection is generic
+    across integrations but needs confirming against real hardware.
+  - Camera tiles shrank to small thumbnails (periodic snapshot refresh, not a live
+    stream) with an "Expand" button opening `SmartHomeCameraModal` (shared with the
+    doorbell popup) for the full MJPEG feed — avoids running every camera's live stream
+    at once just to show a room card.
+  - Verified end-to-end against the real household Home Assistant instance (not just the
+    Demo integration): area grouping resolved actual room names, a device toggled
+    outside the SSE test client (`switch.decorative_lights`) propagated through the
+    WebSocket → SSE pipeline and updated live with no page reload.
 - **Optional add-on, configured entirely inside Home Assistant, no Grimoire code**: the
   `google_assistant_sdk` Home Assistant integration (send commands *to* Google Assistant —
   casting, broadcast announcements, spoken-answer playback) — see

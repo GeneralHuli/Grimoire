@@ -103,3 +103,46 @@ export function climateRange(attrs: Record<string, unknown>, fallbackAround: num
 export function climateHvacModes(attrs: Record<string, unknown>): string[] {
   return stringArray(attrs, "hvac_modes");
 }
+
+/** MediaPlayerEntityFeature bit flags (Home Assistant's own enum) relevant here --
+ * https://developers.home-assistant.io/docs/core/entity/media-player/#supported-features */
+const MEDIA_FEATURE_PAUSE = 1;
+const MEDIA_FEATURE_VOLUME_SET = 4;
+const MEDIA_FEATURE_STOP = 4096;
+
+export function mediaPlayerIsPlaying(state: string): boolean {
+  return state === "playing";
+}
+
+/** Most players support pause/stop without advertising it in `supported_features`, so
+ * (like coverSupportsStop) a missing bitmask defaults to "supported" rather than hiding
+ * the button. */
+export function mediaSupportsPause(attrs: Record<string, unknown>): boolean {
+  const features = num(attrs, "supported_features");
+  return features === null || (features & MEDIA_FEATURE_PAUSE) !== 0;
+}
+
+export function mediaSupportsStop(attrs: Record<string, unknown>): boolean {
+  const features = num(attrs, "supported_features");
+  return features === null || (features & MEDIA_FEATURE_STOP) !== 0;
+}
+
+export function mediaSupportsVolume(attrs: Record<string, unknown>): boolean {
+  const features = num(attrs, "supported_features");
+  return features !== null && (features & MEDIA_FEATURE_VOLUME_SET) !== 0;
+}
+
+export function mediaVolumePct(attrs: Record<string, unknown>): number {
+  const level = num(attrs, "volume_level");
+  return level !== null ? Math.round(level * 100) : 0;
+}
+
+export function mediaTitle(attrs: Record<string, unknown>): string | undefined {
+  const value = attrs.media_title;
+  return typeof value === "string" ? value : undefined;
+}
+
+export function mediaArtist(attrs: Record<string, unknown>): string | undefined {
+  const value = attrs.media_artist;
+  return typeof value === "string" ? value : undefined;
+}

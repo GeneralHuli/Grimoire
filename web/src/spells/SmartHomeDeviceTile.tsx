@@ -4,6 +4,7 @@ import { SmartHomeLockControl } from "./SmartHomeLockControl";
 import { SmartHomeThermostatControl } from "./SmartHomeThermostatControl";
 import { SmartHomeSwitchToggle } from "./SmartHomeSwitchToggle";
 import { SmartHomeCoverControl } from "./SmartHomeCoverControl";
+import { SmartHomeMediaPlayerControl } from "./SmartHomeMediaPlayerControl";
 import type { SmartHomeActions, SmartHomeDevice } from "./smartHomeActions";
 import {
   lightBrightnessPct,
@@ -18,6 +19,12 @@ import {
   climateStep,
   climateRange,
   climateHvacModes,
+  mediaSupportsPause,
+  mediaSupportsStop,
+  mediaSupportsVolume,
+  mediaVolumePct,
+  mediaTitle,
+  mediaArtist,
 } from "./smartHomeAttributes";
 
 interface SmartHomeDeviceTileProps {
@@ -149,6 +156,21 @@ export function SmartHomeDeviceTile({ device, actions, colorPickerFor, onOpenCol
         />
       );
     }
+    case "media_player":
+      return (
+        <SmartHomeMediaPlayerControl
+          name={device.name}
+          state={device.state}
+          title={mediaTitle(device.attributes)}
+          artist={mediaArtist(device.attributes)}
+          supportsPause={mediaSupportsPause(device.attributes)}
+          supportsStop={mediaSupportsStop(device.attributes)}
+          volumePct={mediaSupportsVolume(device.attributes) ? mediaVolumePct(device.attributes) : null}
+          onPlayPause={() => actions.mediaPlayPause(device)}
+          onStop={() => actions.mediaStop(device)}
+          onChangeVolume={(pct) => actions.setMediaVolume(device, pct)}
+        />
+      );
     default:
       return null;
   }

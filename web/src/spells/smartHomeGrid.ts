@@ -17,13 +17,15 @@ export interface SmartHomeGridPlacement {
 
 /** Domains the compact view's drawer will offer -- cameras aren't placeable here, same
  * reasoning as SmartHomeDeviceTile.tsx (a live feed doesn't belong in a small tile). */
-export const PICKABLE_DOMAINS = new Set(["climate", "light", "switch", "lock", "fan", "cover"]);
+export const PICKABLE_DOMAINS = new Set(["climate", "light", "switch", "lock", "fan", "cover", "media_player"]);
 
 /** Slider-style controls (brightness/speed/position) read tall and narrow; the
- * thermostat dial reads roughly square and needs the extra width; everything else
- * (switches, the lock button, the cover open/stop/close trio) is compact. */
+ * thermostat dial and the media player card (art/track text + buttons + volume) read
+ * roughly square and need the extra width; everything else (switches, the lock button,
+ * the cover open/stop/close trio) is compact. */
 export function controlGridSize(device: SmartHomeDevice): { w: number; h: number } {
   if (device.domain === "climate") return { w: 2, h: 2 };
+  if (device.domain === "media_player") return { w: 2, h: 2 };
   if (device.domain === "light") return { w: 1, h: 2 };
   if (device.domain === "fan" && fanSupportsSpeed(device.attributes)) return { w: 1, h: 2 };
   if (device.domain === "cover" && coverSupportsPosition(device.attributes)) return { w: 1, h: 2 };

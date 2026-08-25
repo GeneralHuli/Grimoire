@@ -137,9 +137,9 @@ export function SmartHomeLevelSlider({
       >
         <div className="smart-home-slider-fill" style={{ height: `${active ? displayValue : 0}%` }} />
         {icon && <div className="smart-home-slider-icon">{icon}</div>}
+        <div className="smart-home-slider-label">{label}</div>
         <div className="smart-home-slider-value">{active ? `${Math.round(displayValue)}%` : "Off"}</div>
       </div>
-      <div className="smart-home-slider-label">{label}</div>
       {sublabel && <div className="smart-home-slider-sublabel">{sublabel}</div>}
     </div>
   );

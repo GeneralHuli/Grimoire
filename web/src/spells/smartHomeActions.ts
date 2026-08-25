@@ -33,6 +33,9 @@ export interface SmartHomeActions {
   setLightHue: (device: SmartHomeDevice, hue: number) => Promise<void>;
   setLightColorTemp: (device: SmartHomeDevice, kelvin: number) => Promise<void>;
   setFanLevel: (device: SmartHomeDevice, pct: number) => Promise<void>;
+  mediaPlayPause: (device: SmartHomeDevice) => Promise<void>;
+  mediaStop: (device: SmartHomeDevice) => Promise<void>;
+  setMediaVolume: (device: SmartHomeDevice, pct: number) => Promise<void>;
 }
 
 /** Bundles the optimistic-update + Home Assistant service-call pairs shared by the full
@@ -135,6 +138,22 @@ export function createSmartHomeActions(updateDevice: UpdateSmartHomeDevice): Sma
       }
       updateDevice(device.entityId, (d) => ({ state: "on", attributes: { ...d.attributes, percentage: pct } }));
       await callDeviceService(device.entityId, "turn_on", { percentage: pct });
+    },
+
+    async mediaPlayPause(device) {
+      const playing = device.state === "playing";
+      updateDevice(device.entityId, { state: playing ? "paused" : "playing" });
+      await callDeviceService(device.entityId, "media_play_pause");
+    },
+
+    async mediaStop(device) {
+      updateDevice(device.entityId, { state: "idle" });
+      await callDeviceService(device.entityId, "media_stop");
+    },
+
+    async setMediaVolume(device, pct) {
+      updateDevice(device.entityId, (d) => ({ attributes: { ...d.attributes, volume_level: pct / 100 } }));
+      await callDeviceService(device.entityId, "volume_set", { volume_level: pct / 100 });
     },
   };
 }

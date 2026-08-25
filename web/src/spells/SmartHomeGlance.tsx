@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { SmartHomeDeviceTile } from "./SmartHomeDeviceTile";
 import { SmartHomeGlanceDrawer } from "./SmartHomeGlanceDrawer";
-import { createSmartHomeActions, type SmartHomeDevice } from "./smartHomeActions";
+import { createSmartHomeActions, type SmartHomeDevice, type UpdateSmartHomeDevice } from "./smartHomeActions";
+import { useSmartHomeDeviceSync } from "./smartHomeEvents";
 import {
   SMART_HOME_GRID_COLS,
   SMART_HOME_GRID_ROWS,
@@ -30,13 +31,18 @@ const DOMAIN_LABELS: Record<string, string> = {
   fan: "fans",
   lock: "locked",
   cover: "open",
+  media_player: "playing",
 };
+
+/** Bursty updates (a bulk "All off" touches every light at once) shouldn't each trigger
+ * their own re-fetch -- collapse them into one refresh shortly after the burst settles. */
+const SUMMARY_REFRESH_DEBOUNCE_MS = 400;
 
 export function SmartHomeSummaryGlance() {
   const [summary, setSummary] = useState<DomainSummary[] | null>(null);
   const [connected, setConnected] = useState(true);
 
-  useEffect(() => {
+  const loadSummary = useCallback(() => {
     fetch("/api/spells/smart-home/summary")
       .then(async (res) => {
         if (!res.ok) {
@@ -48,6 +54,16 @@ export function SmartHomeSummaryGlance() {
       })
       .catch(() => setConnected(false));
   }, []);
+
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
+
+  const refreshTimer = useRef<number | null>(null);
+  useSmartHomeDeviceSync(() => {
+    if (refreshTimer.current !== null) window.clearTimeout(refreshTimer.current);
+    refreshTimer.current = window.setTimeout(loadSummary, SUMMARY_REFRESH_DEBOUNCE_MS);
+  });
 
   if (!connected) return <p className="glance-empty">Connect Home Assistant in Settings</p>;
   if (!summary) return <p className="glance-empty">Loading…</p>;
@@ -142,17 +158,24 @@ export function SmartHomeBoardGlance() {
     return () => observer.disconnect();
   }, [gridReady]);
 
-  const actions = useMemo(
-    () =>
-      createSmartHomeActions((entityId, patch) => {
-        setDevices(
-          (prev) =>
-            prev?.map((d) => (d.entityId === entityId ? { ...d, ...(typeof patch === "function" ? patch(d) : patch) } : d)) ??
-            prev
-        );
-      }),
+  const updateDevice = useMemo<UpdateSmartHomeDevice>(
+    () => (entityId, patch) => {
+      setDevices(
+        (prev) =>
+          prev?.map((d) => (d.entityId === entityId ? { ...d, ...(typeof patch === "function" ? patch(d) : patch) } : d)) ??
+          prev
+      );
+    },
     []
   );
+
+  const actions = useMemo(() => createSmartHomeActions(updateDevice), [updateDevice]);
+
+  // Keeps the board's tiles in sync with changes made outside this widget -- another
+  // Grimoire view, the Home Assistant app, or a physical switch.
+  useSmartHomeDeviceSync((update) => {
+    updateDevice(update.entityId, { state: update.state, attributes: update.attributes });
+  });
 
   function updateLayout(next: SmartHomeGridPlacement[]) {
     setGlanceLayout(next);
