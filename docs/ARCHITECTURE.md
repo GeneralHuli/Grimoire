@@ -189,13 +189,25 @@ a reuse of `recipeDrag.ts` — touch is the primary input on the kiosk this app 
 owned by the Recipes Spell but is imported directly by the Meal Planner Spell too
 (tapping an assigned day's recipe opens the same component the Recipes Spell uses) —
 an ordinary cross-Spell TS import, same as the backend's cross-Spell SQL joins, just on
-the frontend. Its "Send to Grocery List" button is the Grocery List Spell's *only* link
-to recipe data: a plain `fetch` into Grocery List's existing `POST /items` endpoint from
-`SendToGroceryListModal.tsx`, not a manifest `requires` or a shared table — Grocery
-List's backend has no dependency on Recipes/Meal Planner at all. This was a deliberate
-choice over Phase 5's original design (an automatic cross-Spell SQL join aggregating
-every planned recipe's ingredients): the household picks which ingredients to send via a
-checklist rather than everything landing in the list automatically.
+the frontend. Its "Send to Grocery List" button (and the Meal Planner Spell's "Send Week
+to Grocery List" action) both open `SendToGroceryListModal`, which is the Grocery List
+Spell's *only* link to recipe data: a plain `fetch` into Grocery List's existing
+`POST /items` endpoint, not a manifest `requires` or a shared table — Grocery List's
+backend has no dependency on Recipes/Meal Planner at all. This was a deliberate choice
+over Phase 5's original design (an automatic cross-Spell SQL join aggregating every
+planned recipe's ingredients): the household picks which ingredients to send via a
+checklist rather than everything landing in the list automatically. Before rendering
+that checklist, the modal now runs the raw ingredient lines through an AI cleanup/merge
+pass — `POST /api/spells/recipes/parse-for-grocery`
+(`server/spells/recipes/parseIngredientsForGrocery.ts`), which lives in the *Recipes*
+Spell (it already owns `ANTHROPIC_API_KEY` usage via `generateRecipe.ts`), not Grocery
+List — so the boundary above still holds: Grocery List's backend only gained generic
+optional fields (`isStaple`, `note`, `amount`, `unit`) on its existing endpoints, plus
+its own non-AI quantity-merge logic (`server/src/quantity.ts`, used by
+`addParsedItem` in `server/spells/grocery-list/store.ts`) for combining the same
+ingredient across separate sends over time. See "Phase 5" in `docs/ROADMAP.md` for the
+full behavior (staple separation/memory, package-size suggestions, cross-recipe
+aggregation).
 
 ### Theming
 

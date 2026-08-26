@@ -100,13 +100,35 @@ runs unattended on its intended hardware for every family member.
 - No backend link to the Meal Planner or Recipes Spells at all — nothing is added
   automatically. Instead, the shared Recipe View modal (used by both the Recipes Spell
   and the Meal Planner Spell) has a "Send to Grocery List" button that opens a
-  checklist of that recipe's ingredients (all checked by default, plus Check
-  all/Uncheck all) so the household picks exactly which lines to add before they land
-  in the list — deliberately not an automatic aggregation, so the list only ever holds
-  what someone chose to put there
+  checklist so the household picks exactly which lines to add before they land in the
+  list — deliberately not an automatic aggregation, so the list only ever holds what
+  someone chose to put there
 - No `requires` — Grocery List's backend is entirely self-contained; the recipe-side
   integration is a plain frontend `fetch` into its existing `POST /items` endpoint from
   `SendToGroceryListModal.tsx`, not a cross-Spell data dependency
+- **AI-assisted checklist (done)**: before the checklist renders, `SendToGroceryListModal`
+  now posts the raw ingredient lines to a new Recipes Spell endpoint,
+  `POST /api/spells/recipes/parse-for-grocery`
+  (`server/spells/recipes/parseIngredientsForGrocery.ts`, same Claude
+  `json_schema`-output pattern as `/generate`), which cleans each line to a shoppable
+  name (stripping quantity/prep verbs but keeping buying-relevant descriptors — "2tbsp
+  chopped fresh parsley" -> "fresh parsley"), merges duplicate ingredients across the
+  whole batch, converts merged totals to standard retail package sizes (e.g. 12 oz
+  tomato paste -> "2 (6 oz) cans"), and flags common pantry staples. Staple items land
+  in a separate, default-unchecked "Staples" section, in both the picker and the live
+  Grocery List. A small pin toggle (`.grocery-pin`, `lucide-react`'s `Pin`) lets the
+  household mark/unmark any item as a staple themselves; marking one persists its name
+  to `GET/PUT /api/settings/grocery-list` (`staples` key, via the existing generic
+  settings store — no new endpoint), which is fed back into future AI parses. The
+  Meal Planner Spell also gained a "Send Week to Grocery List" action that gathers
+  every distinct recipe assigned in the visible week and runs the same AI-parse-and-
+  merge flow across all of them at once. This still doesn't create a backend
+  dependency on Recipes/Meal Planner — the parsing endpoint lives in the Recipes
+  Spell, and Grocery List's own store (`addParsedItem` in
+  `server/spells/grocery-list/store.ts`) separately merges quantities across *separate*
+  sends over time (e.g. two different recipes assigned on different days) using a new,
+  non-AI unit-conversion util, `server/src/quantity.ts` — the same "household picks
+  what lands on the list" checklist step is unchanged, just AI-cleaned first.
 - Depends on: Meal Planner Spell (for the shared Recipe View entry point), Recipes Spell
   (for the ingredients being sent)
 

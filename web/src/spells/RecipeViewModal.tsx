@@ -83,7 +83,7 @@ export function RecipeViewModal({ recipe, onClose, onEdit }: RecipeViewModalProp
       </div>
 
       {sendingToGrocery && (
-        <SendToGroceryListModal ingredients={recipe.ingredientDetails} onClose={() => setSendingToGrocery(false)} />
+        <SendToGroceryListModal lines={recipe.ingredients} onClose={() => setSendingToGrocery(false)} />
       )}
     </>
   );

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { RecipeFields, RecipeIngredient, RecipeSummary } from "./RecipesSpell";
 import { MealPlanRecipePickerModal } from "./MealPlanRecipePickerModal";
 import { RecipeViewModal } from "./RecipeViewModal";
+import { SendToGroceryListModal } from "./SendToGroceryListModal";
 import { RECIPE_DRAG_TYPE } from "./recipeDrag";
 
 interface MealPlanEntry {
@@ -24,6 +25,8 @@ export function MealPlanSpell() {
   const [viewingRecipe, setViewingRecipe] = useState<
     (RecipeFields & { id: string; ingredientDetails: RecipeIngredient[] }) | null
   >(null);
+  const [weekLines, setWeekLines] = useState<string[] | null>(null);
+  const [gatheringWeek, setGatheringWeek] = useState(false);
 
   useEffect(() => {
     fetch("/api/spells/recipes/recipes")
@@ -67,6 +70,19 @@ export function MealPlanSpell() {
     setViewingRecipe((await res.json()) as RecipeFields & { id: string; ingredientDetails: RecipeIngredient[] });
   }
 
+  async function sendWeekToGrocery() {
+    const recipeIds = [...new Set(Object.values(entries).flat().map((e) => e.recipeId))];
+    if (recipeIds.length === 0) return;
+    setGatheringWeek(true);
+    const recipeDetails = await Promise.all(
+      recipeIds.map((id) =>
+        fetch(`/api/spells/recipes/recipes/${id}`).then((res) => res.json() as Promise<RecipeFields>)
+      )
+    );
+    setGatheringWeek(false);
+    setWeekLines(recipeDetails.flatMap((r) => r.ingredients));
+  }
+
   async function clear(entryId: string, date: string) {
     setEntries((prev) => ({
       ...prev,
@@ -93,6 +109,11 @@ export function MealPlanSpell() {
           </button>
         </div>
         <span className="calendar-label">{headerLabel(weekStart)}</span>
+        {Object.values(entries).some((dayEntries) => dayEntries.length > 0) && (
+          <button type="button" className="btn btn-sm" onClick={sendWeekToGrocery} disabled={gatheringWeek}>
+            {gatheringWeek ? "Gathering…" : "Send Week to Grocery List"}
+          </button>
+        )}
       </div>
 
       <p className="meal-plan-hint">
@@ -161,6 +182,8 @@ export function MealPlanSpell() {
       )}
 
       {viewingRecipe && <RecipeViewModal recipe={viewingRecipe} onClose={() => setViewingRecipe(null)} />}
+
+      {weekLines && <SendToGroceryListModal lines={weekLines} onClose={() => setWeekLines(null)} />}
     </div>
   );
 }

@@ -3,6 +3,8 @@ import type { SpellModule } from "../../src/types.js";
 import { listRecipes, getRecipe, createRecipe, updateRecipe, deleteRecipe, type RecipeFields } from "./store.js";
 import { importRecipeFromUrl } from "./importRecipe.js";
 import { generateRecipe } from "./generateRecipe.js";
+import { parseIngredientsForGrocery } from "./parseIngredientsForGrocery.js";
+import { getSettings } from "../../src/settingsStore.js";
 
 function handleErrors(fn: (req: Request, res: Response) => Promise<void>) {
   return (req: Request, res: Response) => {
@@ -79,6 +81,23 @@ const mod: SpellModule = {
         }
         const draft = await generateRecipe(prompt);
         res.json(draft);
+      })
+    );
+
+    app.post(
+      "/api/spells/recipes/parse-for-grocery",
+      handleErrors(async (req, res) => {
+        const { lines } = req.body as { lines?: string[] };
+        if (!Array.isArray(lines) || lines.length === 0) {
+          res.status(400).json({ error: "lines is required" });
+          return;
+        }
+        const knownStaples = getSettings("grocery-list").staples;
+        const items = await parseIngredientsForGrocery(
+          lines.filter((l): l is string => typeof l === "string" && l.trim().length > 0),
+          Array.isArray(knownStaples) ? knownStaples.filter((s): s is string => typeof s === "string") : []
+        );
+        res.json({ items });
       })
     );
   },

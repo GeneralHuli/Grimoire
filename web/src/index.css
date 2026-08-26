@@ -706,6 +706,47 @@ body {
   text-decoration: line-through;
 }
 
+.grocery-item-select {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex: 1;
+  cursor: pointer;
+}
+
+.grocery-item-select input[type="checkbox"] {
+  width: 1.3rem;
+  height: 1.3rem;
+  flex-shrink: 0;
+}
+
+.grocery-item-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.grocery-item-text.done {
+  opacity: 0.55;
+  text-decoration: line-through;
+}
+
+.grocery-item-text.in-cart:not(.done) {
+  color: var(--grim-accent);
+}
+
+.grocery-cart-icon {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.grocery-bulk-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+}
+
 .send-grocery-toolbar {
   display: flex;
   gap: 0.5rem;
@@ -721,6 +762,45 @@ body {
   font-size: 1.1rem;
   line-height: 1;
   cursor: pointer;
+}
+
+.grocery-pin {
+  flex-shrink: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  opacity: 0.4;
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.grocery-pin.active {
+  opacity: 1;
+  color: var(--grim-accent);
+}
+
+.grocery-item-note {
+  display: block;
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.grocery-staples-section {
+  margin-top: 0.85rem;
+  padding-top: 0.6rem;
+  border-top: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+}
+
+.grocery-staples-section h4 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  opacity: 0.65;
+}
+
+.grocery-staples-section .grocery-item {
+  opacity: 0.75;
 }
 
 .kroger-match-item {

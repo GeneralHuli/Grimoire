@@ -24,6 +24,7 @@ interface KrogerProduct {
 interface SendToKrogerCartModalProps {
   items: GroceryItem[];
   onClose: () => void;
+  onSent: (itemIds: string[]) => void;
 }
 
 function formatPrice(product: KrogerProduct): string {
@@ -32,7 +33,7 @@ function formatPrice(product: KrogerProduct): string {
   return "";
 }
 
-export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalProps) {
+export function SendToKrogerCartModal({ items, onClose, onSent }: SendToKrogerCartModalProps) {
   const [resultsByItem, setResultsByItem] = useState<Record<string, KrogerProduct[]>>({});
   const [searchingItem, setSearchingItem] = useState<string | null>(null);
   const [selected, setSelected] = useState<Record<string, KrogerProduct>>({});
@@ -110,6 +111,7 @@ export function SendToKrogerCartModal({ items, onClose }: SendToKrogerCartModalP
         throw new Error(body.error ?? "Adding to cart failed");
       }
       setDone(true);
+      onSent(Object.keys(selected));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Adding to cart failed");
     } finally {
